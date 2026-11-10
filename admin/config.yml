@@ -1,23 +1,29 @@
-# Draft content model only. Not a working admin login.
-# Requires secure OAuth integration and a static-site publishing pipeline.
+# SKUNKLA editorial CMS configuration.
+# Requires a trusted GitHub OAuth provider before publishing can work.
+# Do not put OAuth client secrets or access tokens in this public file.
 backend:
   name: github
   repo: moewalters0099/skunklaofficial-site
   branch: main
+site_url: https://skunklaofficial.com
+display_url: https://skunklaofficial.com
+logo_url: /assets/skunk-logo-black.svg
 publish: false
-media_folder: "assets/uploads"
-public_folder: "/assets/uploads"
+media_folder: assets/uploads
+public_folder: /assets/uploads
 collections:
-  - name: "journal"
-    label: "Journal articles"
-    folder: "content/journal"
+  - name: journal
+    label: Journal articles
+    label_singular: Article
+    folder: content/journal
     create: true
     slug: "{{slug}}"
-    extension: "md"
-    format: "frontmatter"
+    identifier_field: title
+    extension: md
+    format: frontmatter
     fields:
-      - {label: "Title", name: "title", widget: "string"}
-      - {label: "Publication date", name: "date", widget: "datetime"}
-      - {label: "Summary", name: "summary", widget: "text"}
-      - {label: "Cover image", name: "cover", widget: "image", required: false}
-      - {label: "Body", name: "body", widget: "markdown"}
+      - {label: Title, name: title, widget: string}
+      - {label: Publication date, name: date, widget: datetime, format: "YYYY-MM-DD"}
+      - {label: Summary, name: summary, widget: text}
+      - {label: Cover image, name: cover, widget: image, required: false}
+      - {label: Body, name: body, widget: markdown}
