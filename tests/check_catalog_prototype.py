@@ -18,6 +18,8 @@ class Audit(HTMLParser):
         self.local_links = []
         self.search_inputs = []
         self.labels = []
+        self.skip_links = []
+        self.reset_buttons = []
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
         if "id" in attrs:
@@ -33,6 +35,10 @@ class Audit(HTMLParser):
             target = attrs.get("href") if tag == "a" else attrs.get("src")
             if target and not target.startswith(("https://", "http://", "#", "mailto:", "data:")):
                 self.local_links.append(target)
+        if tag == "a" and "skip-link" in attrs.get("class", "").split():
+            self.skip_links.append(attrs)
+        if tag == "button" and attrs.get("id") == "clear-filters":
+            self.reset_buttons.append(attrs)
         if tag == "input" and attrs.get("type") == "search":
             self.search_inputs.append(attrs)
         if tag == "label":
@@ -50,10 +56,15 @@ assert all(x.get("aria-pressed") in {"true", "false"} for x in audit.filters)
 assert {"results", "concept-search", "empty-state"}.issubset(audit.ids)
 assert all(x.get("alt") for x in audit.images), "All images require alt text"
 assert audit.scripts == 1
+assert len(audit.skip_links) == 1 and audit.skip_links[0].get("href") == "#main-content"
+assert "main-content" in audit.ids
+assert len(audit.reset_buttons) == 1 and audit.reset_buttons[0].get("type") == "button"
+assert 'getElementById("clear-filters").addEventListener("click"' in html
 assert len(audit.search_inputs) == 1
 assert audit.search_inputs[0].get("id") == "concept-search"
 assert any(x.get("for") == "concept-search" for x in audit.labels)
 assert all((PAGE.parent / link.split("?", 1)[0]).resolve().is_file() for link in audit.local_links), f"Broken local asset or navigation link: {audit.local_links}"
+assert 'data-filter="all" aria-pressed="true"' in html
 assert "updateGallery()" in html and 'search.addEventListener("input",updateGallery)' in html
 assert 'name="viewport"' in html
 assert 'name="robots" content="noindex,nofollow"' in html
