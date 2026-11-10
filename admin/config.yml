@@ -1,0 +1,23 @@
+# Draft content model only. Not a working admin login.
+# Requires secure OAuth integration and a static-site publishing pipeline.
+backend:
+  name: github
+  repo: moewalters0099/skunklaofficial-site
+  branch: main
+publish: false
+media_folder: "assets/uploads"
+public_folder: "/assets/uploads"
+collections:
+  - name: "journal"
+    label: "Journal articles"
+    folder: "content/journal"
+    create: true
+    slug: "{{slug}}"
+    extension: "md"
+    format: "frontmatter"
+    fields:
+      - {label: "Title", name: "title", widget: "string"}
+      - {label: "Publication date", name: "date", widget: "datetime"}
+      - {label: "Summary", name: "summary", widget: "text"}
+      - {label: "Cover image", name: "cover", widget: "image", required: false}
+      - {label: "Body", name: "body", widget: "markdown"}
