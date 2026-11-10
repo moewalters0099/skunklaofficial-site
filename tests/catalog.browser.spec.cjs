@@ -1,0 +1,95 @@
+const { test, expect } = require('@playwright/test');
+const { resolve } = require('node:path');
+const url = 'file://' + resolve(__dirname, '../prototypes/catalog-layout.html');
+
+test('gallery filters, search, reset, and empty state', async ({ page }) => {
+  await page.goto(url);
+  await expect(page.locator('.tile:visible')).toHaveCount(12);
+  await page.getByRole('button', { name: 'Graphics' }).click();
+  await expect(page.locator('.tile:visible')).toHaveCount(3);
+  await expect(page.getByRole('button', { name: 'Graphics' })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('searchbox', { name: 'Search design concepts' }).fill('study 06');
+  await expect(page.locator('.tile:visible')).toHaveCount(1);
+  await page.getByRole('searchbox', { name: 'Search design concepts' }).fill('no-such-concept');
+  await expect(page.locator('.tile:visible')).toHaveCount(0);
+  await expect(page.locator('#empty-state')).toBeVisible();
+  await page.getByRole('button', { name: 'Reset filters' }).click();
+  await expect(page.locator('.tile:visible')).toHaveCount(12);
+  await expect(page.getByRole('searchbox', { name: 'Search design concepts' })).toHaveValue('');
+});
+
+for (const width of [320, 375, 768, 1440, 1920]) {
+  test('layout has no horizontal overflow at ' + width + 'px', async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(url);
+    await expect(page.locator('.tile:visible')).toHaveCount(12);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+    expect(overflow).toBe(false);
+  });
+}
+
+for (const width of [375, 768, 1440]) {
+  test('capture design review screenshot at ' + width + 'px', async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(url);
+    await expect(page.locator('.tile:visible')).toHaveCount(12);
+    await page.screenshot({
+      path: testInfo.outputPath('catalog-' + width + 'px.png'),
+      fullPage: true,
+    });
+  });
+}
+
+test('keyboard navigation and brand image load', async ({ page }) => {
+  await page.goto(url);
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('link', { name: 'Skip to gallery' })).toBeFocused();
+  const logo = page.locator('.prototype-logo img');
+  await expect(logo).toBeVisible();
+  const loaded = await logo.evaluate(img => img.complete && img.naturalWidth > 0);
+  expect(loaded).toBe(true);
+  await page.getByRole('button', { name: 'Editorial' }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.tile:visible')).toHaveCount(3);
+});
+
+test('reset returns gallery after empty results', async ({ page }) => {
+  await page.goto(url);
+  await page.getByRole('searchbox', { name: 'Search design concepts' }).fill('nothing matches this phrase');
+  await expect(page.locator('#empty-state')).toBeVisible();
+  await page.getByRole('button', { name: 'Reset filters' }).click();
+  await expect(page.locator('#empty-state')).toBeHidden();
+  await expect(page.locator('.tile:visible')).toHaveCount(12);
+});
+
+test('no browser errors during gallery interactions', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto(url);
+  await page.getByRole('button', { name: 'Campaigns' }).click();
+  await page.getByRole('searchbox', { name: 'Search design concepts' }).fill('study');
+  await page.getByRole('button', { name: 'Reset filters' }).click();
+  expect(errors).toEqual([]);
+});
+
+test('page stays noncommercial and unpublished', async ({ page }) => {
+  await page.goto(url);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex,nofollow');
+  await expect(page.getByText('Prototype only. No real products, prices, carts, payment collection, ordering, or checkout.', { exact: false })).toBeVisible();
+  await expect(page.locator('form[action], input[type="payment"], [data-checkout], [data-add-to-cart]')).toHaveCount(0);
+});
+
+test('mobile search and reset controls stay within the viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.goto(url);
+  const search = page.getByRole('searchbox', { name: 'Search design concepts' });
+  const reset = page.getByRole('button', { name: 'Reset filters' });
+  const a = await search.boundingBox();
+  const b = await reset.boundingBox();
+  expect(a).not.toBeNull();
+  expect(b).not.toBeNull();
+  expect(a.x).toBeGreaterThanOrEqual(0);
+  expect(b.x).toBeGreaterThanOrEqual(0);
+  expect(a.x + a.width).toBeLessThanOrEqual(321);
+  expect(b.x + b.width).toBeLessThanOrEqual(321);
+});

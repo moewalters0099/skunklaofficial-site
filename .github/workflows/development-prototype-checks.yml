@@ -1,0 +1,45 @@
+name: Development prototype checks
+
+on:
+  push:
+    branches:
+      - development/catalog-layout
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-prototype:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out development branch
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate unpublished catalog prototype
+        run: python tests/check_catalog_prototype.py
+      - name: Install browser test runner
+        run: npm install --no-save @playwright/test
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run desktop and mobile browser checks
+        run: npx playwright test tests/catalog.browser.spec.cjs --browser chromium --reporter=line
+      - name: Upload screenshots and traces when tests fail
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: development-browser-debug
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload development design review screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: development-design-review
+          path: test-results/**/catalog-*.png
+          if-no-files-found: ignore
+          retention-days: 7
