@@ -12,7 +12,7 @@ export async function onRequestGet({ request, env }) {
   destination.searchParams.set("client_id", env[CLIENT_ID_KEY]);
   destination.searchParams.set("redirect_uri", ORIGIN + "/api/callback");
   destination.searchParams.set("state", state);
-  destination.searchParams.set("scope", "repo");
+  destination.searchParams.set("scope", "public_repo");
   return new Response(null,{status:302,headers:{
     Location:destination.toString(),
     "Set-Cookie":COOKIE+"="+state+"; HttpOnly; Secure; SameSite=Lax; Path=/api; Max-Age=600",
