@@ -39,3 +39,25 @@ for (const width of [375, 768, 1440]) {
     });
   });
 }
+
+test('keyboard navigation and brand image load', async ({ page }) => {
+  await page.goto(url);
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('link', { name: 'Skip to gallery' })).toBeFocused();
+  const logo = page.locator('.prototype-logo img');
+  await expect(logo).toBeVisible();
+  const loaded = await logo.evaluate(img => img.complete && img.naturalWidth > 0);
+  expect(loaded).toBe(true);
+  await page.getByRole('button', { name: 'Editorial' }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.tile:visible')).toHaveCount(3);
+});
+
+test('reset returns gallery after empty results', async ({ page }) => {
+  await page.goto(url);
+  await page.getByRole('searchbox', { name: 'Search design concepts' }).fill('nothing matches this phrase');
+  await expect(page.locator('#empty-state')).toBeVisible();
+  await page.getByRole('button', { name: 'Reset filters' }).click();
+  await expect(page.locator('#empty-state')).toBeHidden();
+  await expect(page.locator('.tile:visible')).toHaveCount(12);
+});
