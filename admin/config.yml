@@ -5,6 +5,8 @@ backend:
   name: github
   repo: moewalters0099/skunklaofficial-site
   branch: main
+  base_url: https://skunklaofficial.com
+  auth_endpoint: api/auth
 site_url: https://skunklaofficial.com
 display_url: https://skunklaofficial.com
 logo_url: /assets/skunk-logo-black.svg
