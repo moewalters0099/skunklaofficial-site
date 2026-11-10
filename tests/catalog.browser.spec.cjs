@@ -61,3 +61,20 @@ test('reset returns gallery after empty results', async ({ page }) => {
   await expect(page.locator('#empty-state')).toBeHidden();
   await expect(page.locator('.tile:visible')).toHaveCount(12);
 });
+
+test('no browser errors during gallery interactions', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto(url);
+  await page.getByRole('button', { name: 'Campaigns' }).click();
+  await page.getByRole('searchbox', { name: 'Search design concepts' }).fill('study');
+  await page.getByRole('button', { name: 'Reset filters' }).click();
+  expect(errors).toEqual([]);
+});
+
+test('page stays noncommercial and unpublished', async ({ page }) => {
+  await page.goto(url);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex,nofollow');
+  await expect(page.getByText('Prototype only. No real products, prices, carts, payment collection, ordering, or checkout.', { exact: false })).toBeVisible();
+  await expect(page.locator('form[action], input[type="payment"], [data-checkout], [data-add-to-cart]')).toHaveCount(0);
+});
