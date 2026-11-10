@@ -27,3 +27,15 @@ for (const width of [375, 768, 1440]) {
     expect(overflow).toBe(false);
   });
 }
+
+for (const width of [375, 768, 1440]) {
+  test('capture design review screenshot at ' + width + 'px', async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(url);
+    await expect(page.locator('.tile:visible')).toHaveCount(12);
+    await page.screenshot({
+      path: testInfo.outputPath('catalog-' + width + 'px.png'),
+      fullPage: true,
+    });
+  });
+}
