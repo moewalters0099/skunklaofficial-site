@@ -1,0 +1,23 @@
+name: Development prototype checks
+
+on:
+  push:
+    branches:
+      - development/catalog-layout
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-prototype:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out development branch
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate unpublished catalog prototype
+        run: python tests/check_catalog_prototype.py
