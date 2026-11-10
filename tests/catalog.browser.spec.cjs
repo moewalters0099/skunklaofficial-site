@@ -18,7 +18,7 @@ test('gallery filters, search, reset, and empty state', async ({ page }) => {
   await expect(page.getByRole('searchbox', { name: 'Search design concepts' })).toHaveValue('');
 });
 
-for (const width of [375, 768, 1440]) {
+for (const width of [320, 375, 768, 1440, 1920]) {
   test('layout has no horizontal overflow at ' + width + 'px', async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto(url);
@@ -77,4 +77,19 @@ test('page stays noncommercial and unpublished', async ({ page }) => {
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex,nofollow');
   await expect(page.getByText('Prototype only. No real products, prices, carts, payment collection, ordering, or checkout.', { exact: false })).toBeVisible();
   await expect(page.locator('form[action], input[type="payment"], [data-checkout], [data-add-to-cart]')).toHaveCount(0);
+});
+
+test('mobile search and reset controls stay within the viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.goto(url);
+  const search = page.getByRole('searchbox', { name: 'Search design concepts' });
+  const reset = page.getByRole('button', { name: 'Reset filters' });
+  const a = await search.boundingBox();
+  const b = await reset.boundingBox();
+  expect(a).not.toBeNull();
+  expect(b).not.toBeNull();
+  expect(a.x).toBeGreaterThanOrEqual(0);
+  expect(b.x).toBeGreaterThanOrEqual(0);
+  expect(a.x + a.width).toBeLessThanOrEqual(321);
+  expect(b.x + b.width).toBeLessThanOrEqual(321);
 });
