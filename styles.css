@@ -3,3 +3,5 @@
 .page-heading{font-size:clamp(3rem,9vw,7rem);line-height:1;letter-spacing:-.06em;margin:20px 0;overflow-wrap:anywhere}.page-heading i{font-style:normal;color:var(--lime)}
 @media(max-width:560px){.site-header{padding:20px}.site-header nav{width:100%;justify-content:space-between;gap:12px}.site-header nav a{min-height:44px;display:inline-flex;align-items:center}.hero h1{font-size:clamp(3.5rem,15vw,6rem);overflow-wrap:normal}.hero-inner{min-width:0}.hero-art{pointer-events:none}.footer-top>div{flex-wrap:wrap}.statement p{font-size:16px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.button:hover{transform:none}}
+
+.subpage-hero{min-height:65vh;display:flex;flex-direction:column;justify-content:center}.subpage-hero .actions{margin-top:20px}.subpage-hero .page-heading{max-width:100%}
