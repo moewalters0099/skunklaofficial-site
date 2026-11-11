@@ -1,0 +1,1 @@
+export async function onRequestGet({env}){return new Response(JSON.stringify({databaseConnected:!!env.DB,setupSecretPresent:typeof env.ADMIN_SETUP_TOKEN==="string",setupSecretLengthValid:typeof env.ADMIN_SETUP_TOKEN==="string"&&env.ADMIN_SETUP_TOKEN.length>=32}),{headers:{"Content-Type":"application/json","Cache-Control":"no-store"}})}
