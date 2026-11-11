@@ -8,4 +8,3 @@ const user=await env.DB.prepare("SELECT id,password_hash FROM admin_users WHERE 
 const parts=user.password_hash.split(":");if(parts.length!==4||parts[0]!=="pbkdf2-sha256"||parts[1]!=="310000")return json({error:"Account requires password reset"},403);
 const digest=await hash(password,parts[2]);if(!equal(digest,parts[3]))return json({error:"Invalid credentials"},401);
 const token=hex(crypto.getRandomValues(new Uint8Array(32))),expiry=new Date(Date.now()+8*3600000).toISOString();await env.DB.prepare("INSERT INTO admin_sessions(id,user_id,expires_at) VALUES(?,?,?)").bind(token,user.id,expiry).run();return json({ok:true},200,{"Set-Cookie":"skunkla_admin="+token+"; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=28800"})}
-}
