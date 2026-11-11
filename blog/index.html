@@ -3,19 +3,19 @@
 const target=document.getElementById('journal-posts');
 const endpoint='https://api.github.com/repos/moewalters0099/skunklaofficial-site/contents/content/journal?ref=main';
 function p(parent,tag,text){const el=document.createElement(tag);el.textContent=text;parent.appendChild(el);return el}
-function parse(source){const m=source.match(/^---\\s*\\n([\\s\\S]*?)\\n---\\s*\\n?/);const meta={};if(m){for(const line of m[1].split('\\n')){const x=line.match(/^([a-zA-Z_]+):\\s*(.*)$/);if(x)meta[x[1]]=x[2].replace(/^["']|["']$/g,'')}}return {meta,body:m?source.slice(m[0].length):source}}
+function parse(source){const m=source.match(/^---\s*\n([\s\S]*?)\n---\s*\n?/);const meta={};if(m){for(const line of m[1].split('\n')){const x=line.match(/^([a-zA-Z_]+):\s*(.*)$/);if(x)meta[x[1]]=x[2].replace(/^["']|["']$/g,'')}}return {meta,body:m?source.slice(m[0].length):source}}
 try{
  const listing=await fetch(endpoint,{headers:{Accept:'application/vnd.github+json'}});
  if(listing.status===404){target.replaceChildren();p(target,'p','No articles have been published yet.');return}
  if(!listing.ok)throw new Error('Unable to load the public article directory');
- const files=(await listing.json()).filter(x=>x.type==='file'&&/\\.md$/i.test(x.name)).slice(0,30);
+ const files=(await listing.json()).filter(x=>x.type==='file'&&/\.md$/i.test(x.name)).slice(0,30);
  target.replaceChildren();if(!files.length){p(target,'p','No articles have been published yet.');return}
  const articles=await Promise.all(files.map(async file=>{
  const res=await fetch(file.download_url);if(!res.ok)throw new Error('Unable to load an article');
  const parsed=parse(await res.text());return {...parsed,filename:file.name}
  }));
  articles.sort((a,b)=>(b.meta.date||'').localeCompare(a.meta.date||''));
- for(const article of articles){const card=document.createElement('article');card.style.cssText='background:#fff;padding:24px;border:1px solid #ddd;margin-bottom:20px;max-width:850px';p(card,'h2',article.meta.title||article.filename.replace(/\\.md$/,''));if(article.meta.date)p(card,'small',article.meta.date);if(article.meta.summary)p(card,'p',article.meta.summary);const details=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Read article';details.appendChild(summary);const body=p(details,'div',article.body);body.style.whiteSpace='pre-wrap';body.style.lineHeight='1.65';card.appendChild(details);target.appendChild(card)}
+ for(const article of articles){const card=document.createElement('article');card.style.cssText='background:#fff;padding:24px;border:1px solid #ddd;margin-bottom:20px;max-width:850px';p(card,'h2',article.meta.title||article.filename.replace(/\.md$/,''));if(article.meta.date)p(card,'small',article.meta.date);if(article.meta.summary)p(card,'p',article.meta.summary);const details=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Read article';details.appendChild(summary);const body=p(details,'div',article.body);body.style.whiteSpace='pre-wrap';body.style.lineHeight='1.65';card.appendChild(details);target.appendChild(card)}
 }catch(e){target.replaceChildren();p(target,'p','Articles could not be loaded right now. Please try again later.')}
 })();
 </script></body></html>
