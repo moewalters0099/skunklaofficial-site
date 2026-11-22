@@ -59,6 +59,7 @@ function showCatalog(products, grid) {
       try {
         saveCart();
         message.textContent = product.name + " added to your cart.";
+        openCart(products, message.textContent);
       } catch {
         if (qty) cart.set(product.id, qty);
         else cart.delete(product.id);
@@ -70,39 +71,107 @@ function showCatalog(products, grid) {
   }));
 }
 
-function showCart(products, root) {
+const shipping = [
+  ["Standard · 5–7 days", 3500],
+  ["Ground · 3–7 days", 5000],
+  ["Priority · 2–3 days", 10000],
+  ["Express · 1–2 days", 20000],
+];
+
+function renderCart(products, panel) {
+  const root = panel.querySelector("[data-cart-items]");
   const available = new Map(products.map((product) => [product.id, product]));
   let subtotal = 0;
+  let units = 0;
   const rows = [];
   for (const [id, qty] of cart) {
     const product = available.get(id);
-    const remaining = Math.min(qty, Number(product?.stock ?? 0));
-    const row = make("div", "");
-    row.className = "item";
-    if (remaining > 0) subtotal += remaining * cents(product);
+    const stock = Number(product?.stock ?? 0);
+    const remaining = Math.min(qty, stock);
     const name = product?.name ?? "Unavailable product";
-    row.append(make("strong", name), make("span",
-      remaining > 0 ? remaining + " × " + price(cents(product)) : "Unavailable"));
-    if (remaining > 0 && remaining < qty) row.append(make("small", "Quantity adjusted to available stock."));
-    const remove = make("button", "Remove");
-    remove.type = "button";
-    remove.setAttribute("aria-label", "Remove " + name);
-    remove.onclick = () => {
-      cart.delete(id);
-      try {
-        saveCart();
-        showCart(products, root);
-      } catch {
-        cart.set(id, qty);
-        document.querySelector("#catalog-message").textContent = "Your browser could not update the cart.";
-      }
-    };
-    row.append(remove);
+    const row = make("article", "");
+    row.className = "cart-line";
+    if (product?.photo_url?.startsWith("https://")) {
+      const image = make("img", "");
+      image.src = product.photo_url;
+      image.alt = "";
+      row.append(image);
+    }
+    const detail = make("div", "");
+    detail.append(make("strong", name), make("p", remaining ? price(cents(product)) + " each" : "Unavailable"));
+    units += remaining;
+    if (remaining) subtotal += remaining * cents(product);
+    if (remaining && remaining < qty) detail.append(make("small", "Only " + remaining + " available"));
+    const controls = make("div", "");
+    controls.className = "cart-controls";
+    function control(label, accessible, newQty, disabled = false) {
+      const button = make("button", label);
+      button.type = "button";
+      button.disabled = disabled;
+      button.setAttribute("aria-label", accessible + " " + name);
+      button.onclick = () => {
+        if (newQty) cart.set(id, newQty);
+        else cart.delete(id);
+        try {
+          saveCart();
+          renderCart(products, panel);
+        } catch {
+          cart.set(id, qty);
+          panel.querySelector("[data-cart-message]").textContent = "Your browser could not update the cart.";
+        }
+      };
+      return button;
+    }
+    controls.append(control("−", "Decrease quantity for", remaining - 1, remaining <= 1),
+      make("output", String(remaining)), control("+", "Increase quantity for", remaining + 1, remaining >= stock),
+      control("Remove", "Remove", 0));
+    detail.append(controls);
+    row.append(detail);
     rows.push(row);
   }
   root.replaceChildren(...rows);
-  document.querySelector("#subtotal").textContent = price(subtotal);
-  document.querySelector("#catalog-message").textContent = rows.length ? "" : "Your cart is empty.";
+  const selected = Number(panel.querySelector("[data-shipping]").value);
+  const fee = units > 0 ? shipping[selected][1] : 0;
+  panel.querySelector("[data-subtotal]").textContent = price(subtotal);
+  panel.querySelector("[data-total]").textContent = price(subtotal + fee);
+  panel.querySelector("[data-cart-empty]").hidden = rows.length > 0;
+}
+
+function setupCart(products, panel) {
+  panel.innerHTML = `
+    <p data-cart-message role="status"></p>
+    <p data-cart-empty hidden>Your cart is empty.</p>
+    <div class="cart-lines" data-cart-items></div>
+    <div class="cart-summary">
+      <label for="cart-shipping">Shipping estimate</label>
+      <select id="cart-shipping" data-shipping></select>
+      <p class="cart-small">First Class · $15 for eligible small items. Eligibility has not been set up.</p>
+      <label for="cart-note">Order note</label>
+      <textarea id="cart-note" maxlength="500" rows="2" placeholder="Optional"></textarea>
+      <dl><div><dt>Subtotal</dt><dd data-subtotal></dd></div>
+      <div><dt>Estimated total</dt><dd data-total></dd></div></dl>
+      <p class="cart-small">Checkout is currently unavailable.</p>
+    </div>`;
+  const select = panel.querySelector("[data-shipping]");
+  shipping.forEach(([label, fee], index) => select.add(new Option(label + " · " + price(fee), index)));
+  select.onchange = () => renderCart(products, panel);
+  renderCart(products, panel);
+}
+
+let drawer;
+function openCart(products, message = "") {
+  if (!drawer) {
+    drawer = document.createElement("dialog");
+    drawer.className = "cart-drawer";
+    drawer.setAttribute("aria-labelledby", "cart-drawer-title");
+    drawer.innerHTML = '<header><h2 id="cart-drawer-title">Shopping cart</h2><form method="dialog"><button type="submit" aria-label="Close cart">Close</button></form></header><div data-cart-panel></div><a class="cart-link" href="/cart-preview">View full cart</a>';
+    document.body.append(drawer);
+    setupCart(products, drawer.querySelector("[data-cart-panel]"));
+  }
+  const panel = drawer.querySelector("[data-cart-panel]");
+  panel.querySelector("[data-cart-message]").textContent = message;
+  renderCart(products, panel);
+  if (!drawer.open) drawer.showModal();
 }
 
 (async () => {
@@ -111,8 +180,17 @@ function showCart(products, root) {
     if (!response.ok) throw new Error("Catalog unavailable");
     const products = await response.json();
     const grid = document.querySelector("[data-category]");
-    if (grid) showCatalog(products, grid);
-    else showCart(products, document.querySelector("#items"));
+    if (grid) {
+      showCatalog(products, grid);
+      document.querySelector(".catalog-toolbar a").addEventListener("click", (event) => {
+        if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        openCart(products);
+      });
+    } else {
+      setupCart(products, document.querySelector("#items"));
+      document.querySelector("#catalog-message").textContent = "";
+    }
   } catch {
     document.querySelector("#catalog-message").textContent = "Products could not be loaded. Refresh to try again.";
   }

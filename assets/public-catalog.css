@@ -3,3 +3,20 @@
 .product-card h2,.product-card p{margin:0}
 .product-card button{background:#202124;color:white;border:0;border-radius:4px;padding:9px 14px;font:inherit;cursor:pointer;margin-top:auto}
 .product-card button:disabled{opacity:.55;cursor:default}
+.cart-drawer{position:fixed;inset:0 0 0 auto;margin:0;width:min(100%,460px);height:100dvh;max-height:none;max-width:none;border:0;border-left:5px solid #a5262a;background:#fff;color:#202124;padding:20px;overflow:auto;font:16px system-ui,sans-serif}
+.cart-drawer::backdrop{background:#12101488}
+.cart-drawer header,.cart-summary dl div{display:flex;align-items:center;justify-content:space-between;gap:15px}
+.cart-drawer h2{margin:0}
+.cart-lines{display:grid;gap:12px}
+.cart-line{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid #ddd}
+.cart-line img{width:72px;height:72px;object-fit:cover;border-radius:6px}
+.cart-line p{margin:5px 0}
+.cart-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cart-controls button,.cart-drawer header button{font:inherit;background:#f2eee9;border:1px solid #d6cac2;border-radius:5px;padding:6px 10px;cursor:pointer}
+.cart-controls button:disabled{opacity:.5;cursor:default}
+.cart-summary{padding:14px 0}
+.cart-summary label{display:block;font-weight:bold;margin:8px 0}
+.cart-summary select,.cart-summary textarea{box-sizing:border-box;width:100%;padding:8px;font:inherit}
+.cart-summary dd{margin:4px 0;font-weight:bold}
+.cart-small{font-size:.88rem;color:#555}
+.cart-link{display:block;text-align:center;padding:9px;background:#271e1c;color:white;border-radius:5px}
