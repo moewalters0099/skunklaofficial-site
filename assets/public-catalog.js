@@ -334,25 +334,79 @@ function showProduct(products, root) {
       slides.push({ element: video, label: "Video" });
     }
   }
-  const selector = make("div", "");
-  selector.className = "product-actions";
-  slides.forEach(({ element, label }, index) => {
-    element.hidden = index !== 0;
-    media.append(element);
-    if (slides.length < 2) return;
-    const button = make("button", label);
-    button.type = "button";
-    button.setAttribute("aria-pressed", String(index === 0));
-    button.onclick = () => {
-      slides.forEach((slide, position) => {
-        slide.element.hidden = position !== index;
-        if (slide.element.hidden && slide.element.tagName === "VIDEO") slide.element.pause();
-        selector.children[position].setAttribute("aria-pressed", String(position === index));
+  if (slides.length) {
+    const gallery = make("div", "");
+    gallery.className = "product-gallery";
+    const stage = make("div", "");
+    stage.className = "product-gallery-stage";
+    stage.append(...slides.map(({ element }) => element));
+    gallery.append(stage);
+    if (slides.length > 1) {
+      gallery.classList.add("has-thumbnails");
+      const thumbnails = make("div", "");
+      thumbnails.className = "product-thumbnails";
+      const counter = make("output", "");
+      counter.className = "product-gallery-counter";
+      counter.setAttribute("aria-live", "polite");
+      let active = 0;
+      function show(index) {
+        active = (index + slides.length) % slides.length;
+        slides.forEach(({ element }, position) => {
+          element.hidden = position !== active;
+          if (element.hidden && element.tagName === "VIDEO") element.pause();
+          thumbnails.children[position].setAttribute("aria-pressed", String(position === active));
+        });
+        counter.textContent = (active + 1) + " / " + slides.length;
+      }
+      slides.forEach(({ element, label }, index) => {
+        const button = make("button", "");
+        button.type = "button";
+        button.setAttribute("aria-label", "Show " + label.toLowerCase());
+        const preview = element.tagName === "VIDEO" ? element.poster : element.src;
+        if (preview) {
+          const thumb = make("img", "");
+          thumb.src = preview;
+          thumb.alt = "";
+          thumb.loading = "lazy";
+          button.append(thumb);
+        }
+        if (element.tagName === "VIDEO") button.append(make("span", "▶"));
+        button.onclick = () => show(index);
+        thumbnails.append(button);
       });
-    };
-    selector.append(button);
-  });
-  if (selector.children.length) media.append(selector);
+      gallery.prepend(thumbnails);
+      for (const [step, label, symbol] of [[-1, "Previous media", "‹"], [1, "Next media", "›"]]) {
+        const arrow = make("button", symbol);
+        arrow.type = "button";
+        arrow.className = "product-gallery-arrow " + (step < 0 ? "previous" : "next");
+        arrow.setAttribute("aria-label", label);
+        arrow.onclick = () => show(active + step);
+        stage.append(arrow);
+      }
+      stage.append(counter);
+      gallery.addEventListener("keydown", (event) => {
+        if (event.target.tagName === "VIDEO" || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+        event.preventDefault();
+        show(active + (event.key === "ArrowLeft" ? -1 : 1));
+      });
+      let touchStart;
+      stage.addEventListener("touchstart", (event) => {
+        const touch = event.touches[0];
+        touchStart = event.touches.length === 1 ? { x: touch.clientX, y: touch.clientY } : null;
+      }, { passive: true });
+      stage.addEventListener("touchcancel", () => { touchStart = null; });
+      stage.addEventListener("touchend", (event) => {
+        if (!touchStart) return;
+        const touch = event.changedTouches[0];
+        const dx = touch.clientX - touchStart.x;
+        const dy = touch.clientY - touchStart.y;
+        touchStart = null;
+        if (Math.abs(dx) >= 45 && Math.abs(dx) > Math.abs(dy) * 1.3) show(active + (dx < 0 ? 1 : -1));
+      }, { passive: true });
+      show(0);
+    }
+    media.append(gallery);
+  }
   if (videoLink) media.append(videoLink);
   root.querySelector("h1").textContent = [product.name, product.sku].filter(Boolean).join(" · ");
   root.querySelector("[data-price]").textContent = price(cents(product));
