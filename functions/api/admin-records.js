@@ -80,7 +80,8 @@ export async function onRequest(context) {
       details.subcategory = input.subcategory;
     }
 
-    for (const field of ["photo_url", "video_url"]) {
+    for (const field of ["photo_url", "photo_url_2", "photo_url_3", "photo_url_4", "video_url"]) {
+      if (input[field] === undefined) continue;
       const value = mediaUrl(input?.[field]);
       if (value === null) return json({ error: "Use direct HTTPS links for product media." }, 400);
       details[field] = value;

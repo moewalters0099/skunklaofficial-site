@@ -308,14 +308,18 @@ function showProduct(products, root) {
   document.title = product.name + " | SKUNKLA";
   message.textContent = "";
   const media = root.querySelector("[data-product-media]");
-  const image = make("img", "");
-  if (product.photo_url?.startsWith("https://")) {
-    image.src = product.photo_url;
-    image.alt = product.name;
-    media.append(image);
-  }
+  const photos = [...new Set([product.photo_url, product.photo_url_2, product.photo_url_3, product.photo_url_4]
+    .filter((url) => typeof url === "string" && url.startsWith("https://")))];
+  const slides = photos.map((url, index) => {
+    const image = make("img", "");
+    image.src = url;
+    image.alt = product.name + " photo " + (index + 1);
+    image.loading = index === 0 ? "eager" : "lazy";
+    return { element: image, label: "Photo " + (index + 1) };
+  });
+  let videoLink;
   if (product.video_url?.startsWith("https://")) {
-    const videoLink = make("a", "Open product video");
+    videoLink = make("a", "Open product video");
     videoLink.href = product.video_url;
     videoLink.target = "_blank";
     videoLink.rel = "noopener noreferrer";
@@ -325,27 +329,31 @@ function showProduct(products, root) {
       video.controls = true;
       video.playsInline = true;
       video.preload = "none";
-      if (image.src) video.poster = image.src;
+      if (photos.length) video.poster = photos[0];
       video.setAttribute("aria-label", product.name + " video");
-      const selector = make("div", "");
-      selector.className = "product-actions";
-      for (const [label, showVideo] of [["Photo", false], ["Video", true]]) {
-        if (!showVideo && !image.src) continue;
-        const button = make("button", label);
-        button.setAttribute("aria-pressed", String(showVideo === !image.src));
-        button.onclick = () => {
-          image.hidden = showVideo;
-          video.hidden = !showVideo;
-          if (!showVideo) video.pause();
-          for (const peer of selector.children) peer.setAttribute("aria-pressed", String(peer === button));
-        };
-        selector.append(button);
-      }
-      video.hidden = Boolean(image.src);
-      media.append(video, selector);
+      slides.push({ element: video, label: "Video" });
     }
-    media.append(videoLink);
   }
+  const selector = make("div", "");
+  selector.className = "product-actions";
+  slides.forEach(({ element, label }, index) => {
+    element.hidden = index !== 0;
+    media.append(element);
+    if (slides.length < 2) return;
+    const button = make("button", label);
+    button.type = "button";
+    button.setAttribute("aria-pressed", String(index === 0));
+    button.onclick = () => {
+      slides.forEach((slide, position) => {
+        slide.element.hidden = position !== index;
+        if (slide.element.hidden && slide.element.tagName === "VIDEO") slide.element.pause();
+        selector.children[position].setAttribute("aria-pressed", String(position === index));
+      });
+    };
+    selector.append(button);
+  });
+  if (selector.children.length) media.append(selector);
+  if (videoLink) media.append(videoLink);
   root.querySelector("h1").textContent = [product.name, product.sku].filter(Boolean).join(" · ");
   root.querySelector("[data-price]").textContent = price(cents(product));
   root.querySelector("[data-category-name]").textContent = [product.category, product.subcategory?.replaceAll("-", " ")].filter(Boolean).join(" / ");
