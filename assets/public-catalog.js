@@ -29,7 +29,8 @@ function showCatalog(products, grid) {
   const subcategory = query.get("subcategory") || "";
   const bracket = query.get("price") || "";
   const lower = Number(bracket);
-  const waxRange = category === "wax" ? [...(filters?.querySelectorAll('[data-filter="price"]') ?? [])]
+  const hasConfiguredRanges = category === "wax" || category === "vapes";
+  const configuredRange = hasConfiguredRanges ? [...(filters?.querySelectorAll('[data-filter="price"]') ?? [])]
     .find((link) => link.dataset.value === bracket && bracket !== "") : null;
   if (filters) {
     for (const link of filters.querySelectorAll("[data-filter]")) {
@@ -46,9 +47,9 @@ function showCatalog(products, grid) {
     if (!filters) return true;
     if (subcategory && item.subcategory !== subcategory) return false;
     const amount = cents(item);
-    if (category === "wax") {
-      return !waxRange || (amount >= lower * 100 &&
-        (!waxRange.dataset.upper || amount < Number(waxRange.dataset.upper) * 100));
+    if (hasConfiguredRanges) {
+      return !configuredRange || (amount >= lower * 100 &&
+        (!configuredRange.dataset.upper || amount < Number(configuredRange.dataset.upper) * 100));
     }
     return !bracket || (amount >= lower * 100 && (lower === 1600 ? amount <= 200000 : amount < (lower + 400) * 100));
   });

@@ -99,6 +99,7 @@
       const groups = {
         flower: ["Breakdowns", "Deps", "Indoors", "Indoor Smalls", "Lows"],
         wax: ["Badder", "Crumble", "Diamonds", "Distillate", "Hash", "Sugar", "Rosin", "Shatter"],
+        vapes: ["Disposables", "Nicotine", "Vape Carts"],
       };
       const category = fields.querySelector('[name="category"]');
       function setSubcategories(selected = "") {

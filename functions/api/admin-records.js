@@ -69,6 +69,7 @@ export async function onRequest(context) {
       const groups = {
         flower: ["breakdowns", "deps", "indoors", "indoor-smalls", "lows"],
         wax: ["badder", "crumble", "diamonds", "distillate", "hash", "sugar", "rosin", "shatter"],
+        vapes: ["disposables", "nicotine", "vape-carts"],
       };
       const category = details.category.toLowerCase();
       if (input.subcategory !== "" && (!Object.hasOwn(groups, category) || !groups[category].includes(input.subcategory))) {
