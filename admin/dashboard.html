@@ -1,1 +1,47 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex"><title>SKUNKLA Admin</title></head><body><h1>SKUNKLA administrator</h1><p id="status">Checking session…</p><p>Blog publishing is not yet enabled in this dashboard.</p><button id="logout">Sign out</button><script>fetch('/api/admin-session',{credentials:'same-origin'}).then(r=>{if(!r.ok){location.replace('/admin/');return}return r.json()}).then(x=>{if(x)document.getElementById('status').textContent='Signed in as '+x.email});document.getElementById('logout').onclick=async()=>{await fetch('/api/admin-session',{method:'DELETE'});location.assign('/admin/')}</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Blog editor | SKUNKLA</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#f3f3f3;color:#202124;font:16px system-ui,sans-serif}
+    header{background:#202124;color:white;padding:18px max(5%,20px);display:flex;justify-content:space-between;align-items:center;gap:12px}
+    main{max-width:850px;margin:28px auto;padding:0 16px}section,form{background:white;padding:clamp(16px,4vw,32px);border:1px solid #ddd;margin-bottom:16px}
+    label{display:block;font-weight:650;margin:14px 0 5px}input,textarea,select{width:100%;padding:10px;font:inherit;border:1px solid #aaa;border-radius:4px}
+    button{font:inherit;font-weight:650;padding:10px 14px;cursor:pointer;border:1px solid #999;border-radius:4px;background:white;color:#202124}
+    button[value="publish"]{background:#202124;color:white}button:disabled{opacity:.5}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}h1,h2{margin-top:0}a{color:inherit}
+  </style>
+  <script src="/admin/blog-editor.js" defer></script>
+</head>
+<body>
+<header><strong>SKUNKLA · ADMIN</strong><button id="logout">Sign out</button></header>
+<main>
+  <h1>Blog editor</h1>
+  <p id="status" role="status">Checking session…</p>
+  <div id="editor" hidden>
+    <section aria-label="Select a post">
+      <a href="/blog/">View public blog</a>
+      <label for="posts">Your posts</label>
+      <select id="posts"><option value="">New post</option></select>
+    </section>
+    <form id="post-form">
+      <h2 id="form-title">New post</h2>
+      <label for="title">Title</label>
+      <input id="title" name="title" maxlength="160" required>
+      <label for="summary">Summary (optional)</label>
+      <textarea id="summary" name="summary" maxlength="500" rows="2"></textarea>
+      <label for="body">Article text</label>
+      <textarea id="body" name="body" maxlength="50000" rows="12"></textarea>
+      <div class="actions">
+        <button type="submit" value="draft" id="draft">Save draft</button>
+        <button type="submit" value="publish">Publish</button>
+      </div>
+      <p id="result" role="status"></p>
+    </form>
+  </div>
+</main>
+</body>
+</html>
