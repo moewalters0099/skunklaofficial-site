@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
   <title>Admin dashboard | SKUNKLA</title>
-  <link rel="stylesheet" href="/admin/dashboard.css?v=5132b83626eb">
+  <link rel="stylesheet" href="/admin/dashboard.css?v=e7c9eaac0d17">
   <script src="/admin/blog-editor.js?v=0bb302d045fe" defer></script>
   <script src="/admin/workspace.js?v=ae2b938868b0" defer></script>
+  <script src="/admin/records.js?v=9b4a4526d829" defer></script>
 </head>
 <body>
 <header class="topbar"><a class="brand" href="#overview">SKUNKLA <span>ADMIN</span></a><div><a href="/">View site</a><button id="theme-toggle" type="button" aria-pressed="false">Dark mode</button><button id="logout" type="button">Sign out</button></div></header>
@@ -35,12 +36,22 @@
       <p class="panel">Online checkout is currently unavailable, so this dashboard has no order records.</p>
     </section>
     <section id="products" data-view hidden>
-      <h1>Products</h1>
-      <div class="panel"><p>There are no product listings in the website catalog yet.</p><a href="#catalog">Browse categories</a></div>
+      <div class="view-header"><h1>Products</h1><button type="button" id="products-add" class="primary">Add product</button></div>
+      <label for="product-search">Search products</label>
+      <input type="search" id="product-search" placeholder="Name, SKU or category">
+      <p id="products-status" role="status"></p>
+      <div class="table-panel" tabindex="0" role="region" aria-label="Product table">
+        <table>
+          <thead><tr><th>Product / SKU</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="products-list"></tbody>
+        </table>
+      </div>
     </section>
     <section id="payments" data-view hidden>
-      <h1>Payment methods</h1>
-      <p class="panel">No payment provider is connected.</p>
+      <div class="view-header"><h1>Payment methods</h1><button type="button" id="payments-add" class="primary">Add payment method</button></div>
+      <p>Saved wallet addresses are visible to administrators only.</p>
+      <p id="payments-status" role="status"></p>
+      <ul id="payments-list" class="payment-grid"></ul>
     </section>
     <section id="customers" data-view hidden>
       <h1>Customers</h1>
@@ -56,7 +67,7 @@
     </section>
     <section id="inventory" data-view hidden>
       <h1>Inventory</h1>
-      <div class="panel"><p>Stock tracking needs product listings.</p><a href="#products">View products</a></div>
+      <div class="panel"><p>View and update stock counts in the Products table.</p><a href="#products">View products</a></div>
     </section>
     <section id="admins" data-view hidden>
       <h1>Manage admins</h1>
@@ -117,6 +128,16 @@
     </section>
   </main>
 </div>
+<dialog id="record-dialog" aria-labelledby="record-title">
+  <form id="record-form">
+    <h2 id="record-title"></h2>
+    <div id="record-fields"></div>
+    <label for="record-status">Status</label>
+    <select id="record-status" name="status"><option value="inactive">Inactive</option><option value="active">Active</option></select>
+    <p id="record-feedback" role="status"></p>
+    <div class="actions"><button type="submit" class="primary">Save</button><button type="button" id="record-cancel">Cancel</button></div>
+  </form>
+</dialog>
 <p id="status" role="status">Checking session…</p>
 </body>
 </html>

@@ -38,3 +38,16 @@ summary{cursor:pointer;font-weight:650}
 [data-theme="dark"] :is(.panel,.metrics a,.catalog-grid a,input,textarea,select,button){background:#292321;color:var(--ink)}
 [data-theme="dark"] .metrics strong{color:#ffb4a7}
 [data-theme="dark"] button[value="publish"]{background:var(--accent);color:white}
+.view-header{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:12px}
+button.primary,[data-theme="dark"] button.primary{background:var(--accent);color:white;border-color:var(--accent)}
+.table-panel{overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--paper)}
+table{width:100%;border-collapse:collapse;min-width:610px;text-align:left}
+th,td{padding:13px 14px;border-bottom:1px solid var(--line)}
+th{background:#342a26;color:white;font-size:.9rem}
+td small{display:block;margin-top:3px}
+tbody tr:last-child td{border-bottom:0}
+.payment-grid{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr));gap:14px}
+.payment-grid li{border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:8px;padding:20px}
+.payment-grid code{display:block;overflow-wrap:anywhere;margin-bottom:16px}
+dialog{width:min(92vw,510px);max-height:90vh;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);padding:24px}
+dialog::backdrop{background:#17141299}
