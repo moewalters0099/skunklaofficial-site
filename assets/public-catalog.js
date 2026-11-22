@@ -44,7 +44,7 @@ function showCatalog(products, grid) {
     if (!filters) return true;
     if (subcategory && item.subcategory !== subcategory) return false;
     const amount = cents(item);
-    return !bracket || (amount >= lower * 100 && (lower === 1200 || amount < (lower + 400) * 100));
+    return !bracket || (amount >= lower * 100 && (lower === 1600 ? amount <= 200000 : amount < (lower + 400) * 100));
   });
   const matches = grid.hasAttribute("data-featured") ? listings.slice(0, 6) : listings;
   document.querySelector(".catalog-count").textContent = matches.length + (matches.length === 1 ? " item listed" : " items listed");
