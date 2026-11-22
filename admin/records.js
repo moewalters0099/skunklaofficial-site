@@ -90,6 +90,19 @@
       input.value = record?.[key] ?? "";
       fields.append(label, input);
     }
+    if (kind === "products") {
+      const label = node("label", "Flower subcategory (optional)");
+      label.htmlFor = "flower-subcategory";
+      const select = document.createElement("select");
+      select.id = label.htmlFor;
+      select.name = "subcategory";
+      select.add(new Option("None", ""));
+      for (const group of ["Breakdowns", "Deps", "Indoors", "Indoor Smalls", "Lows"]) {
+        select.add(new Option(group, group.toLowerCase().replaceAll(" ", "-")));
+      }
+      select.value = record?.subcategory ?? "";
+      fields.append(label, select);
+    }
     if (kind === "payments") addQrField(fields, record);
     form.elements.status.value = record?.status ?? "inactive";
     feedback.textContent = "";

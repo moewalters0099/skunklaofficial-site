@@ -24,11 +24,32 @@ function saveCart() {
 
 function showCatalog(products, grid) {
   const category = grid.dataset.category;
-  const listings = products.filter((item) => !category || item.category.trim().toLowerCase() === category);
+  const filters = document.querySelector("#flower-filters");
+  const query = new URLSearchParams(location.search);
+  const subcategory = query.get("subcategory") || "";
+  const bracket = query.get("price") || "";
+  const lower = Number(bracket);
+  if (filters) {
+    for (const link of filters.querySelectorAll("[data-filter]")) {
+      const { filter, value } = link.dataset;
+      const next = new URLSearchParams(query);
+      if (value) next.set(filter, value);
+      else next.delete(filter);
+      link.href = location.pathname + (next.size ? "?" + next : "");
+      if ((query.get(filter) || "") === value) link.setAttribute("aria-current", "true");
+    }
+  }
+  const listings = products.filter((item) => {
+    if (category && item.category.trim().toLowerCase() !== category) return false;
+    if (!filters) return true;
+    if (subcategory && item.subcategory !== subcategory) return false;
+    const amount = cents(item);
+    return !bracket || (amount >= lower * 100 && (lower === 1200 || amount < (lower + 400) * 100));
+  });
   const matches = grid.hasAttribute("data-featured") ? listings.slice(0, 6) : listings;
   document.querySelector(".catalog-count").textContent = matches.length + (matches.length === 1 ? " item listed" : " items listed");
   const message = document.querySelector("#catalog-message");
-  message.textContent = matches.length ? "" : "No products listed in this category yet.";
+  message.textContent = matches.length ? "" : "No products match this selection.";
   grid.replaceChildren(...matches.map((product) => {
     const card = make("article", "");
     card.className = "product-card";

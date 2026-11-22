@@ -58,6 +58,13 @@ export async function onRequest(context) {
     return json({ error: "Enter a USD price and a whole-number stock count." }, 400);
   }
   if (kind === "products") {
+    if (input.subcategory !== undefined) {
+      if (!["", "breakdowns", "deps", "indoors", "indoor-smalls", "lows"].includes(input.subcategory)) {
+        return json({ error: "Choose a valid Flower subcategory." }, 400);
+      }
+      details.subcategory = input.subcategory;
+    }
+
     for (const field of ["photo_url", "video_url"]) {
       const value = mediaUrl(input?.[field]);
       if (value === null) return json({ error: "Use direct HTTPS links for product media." }, 400);
