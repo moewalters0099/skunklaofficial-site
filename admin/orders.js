@@ -17,10 +17,10 @@
         const card = make("article", "");
         card.className = "panel";
         card.append(make("h2", "Order " + order.id),
-          make("p", order.created_at + " UTC · Awaiting review"),
+          make("p", order.created_at + " UTC · " + (order.status === "pending_payment" ? "Pending payment" : "Awaiting review")),
           make("p", "Email: " + order.email), make("p", "Shipping address: " + order.address),
           make("p", shippingNames[order.shippingIndex] + " shipping · " + money(order.fee)),
-          make("p", order.asset + " · " + order.network),
+          make("p", (order.paymentMethods ?? [{ name: order.asset, network: order.network }]).map(({ name, network }) => name + " · " + network).join(", ")),
           make("p", "Estimated total: " + money(order.total)));
         const items = make("ul", "");
         items.append(...order.lines.map((line) => make("li", line.qty + " × " + line.name + " · " + money(line.unitPrice) + " each")));

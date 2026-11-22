@@ -4,6 +4,22 @@ const shipping = [3500, 5000, 10000, 20000];
 const json = (body, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
 const uuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/;
 
+function publicWallets(rows) {
+  return rows.map(({ details }) => {
+    const { name, network, address, qr_image } = JSON.parse(details);
+    return { name, network, address, qr_image };
+  });
+}
+
+async function checkoutResult(env, id, status = 200) {
+  const order = await env.DB.prepare("SELECT details FROM order_requests WHERE id=?").bind(id).first();
+  const { total } = JSON.parse(order.details);
+  const { results } = await env.DB.prepare(
+    "SELECT details FROM admin_records WHERE kind='payments' AND json_extract(details,'$.status')='active' ORDER BY updated_at DESC,id"
+  ).all();
+  return json({ id, total, wallets: publicWallets(results) }, status);
+}
+
 export async function onRequestGet(context) {
   const session = await checkSession(context);
   if (!session.ok) return session;
@@ -30,15 +46,14 @@ export async function onRequestPost({ request, env }) {
     return json({ error: "One or more cart items are invalid." }, 400);
   }
   const previous = await env.DB.prepare("SELECT id FROM order_requests WHERE id=?").bind(id).first();
-  if (previous) return json({ id });
+  if (previous) return checkoutResult(env, id);
 
   const { results } = await env.DB.prepare(
     "SELECT id,kind,details FROM admin_records WHERE json_extract(details,'$.status')='active' AND (kind='payments' OR (kind='products' AND id IN (" +
     items.map(() => "?").join(",") + "))) ORDER BY updated_at DESC,id"
   ).bind(...items.map((item) => item.id)).all();
-  const payment = results.find(({ kind }) => kind === "payments");
-  if (!payment) return json({ error: "Payment is temporarily unavailable." }, 503);
-  const { name: asset, network } = JSON.parse(payment.details);
+  const methods = results.filter(({ kind }) => kind === "payments");
+  if (!methods.length) return json({ error: "Payment is temporarily unavailable." }, 503);
 
   const products = new Map(results.filter(({ kind }) => kind === "products")
     .map(({ id: productId, details }) => [productId, JSON.parse(details)]));
@@ -56,8 +71,11 @@ export async function onRequestPost({ request, env }) {
   if (!Number.isSafeInteger(total) || total !== expectedTotal) {
     return json({ error: "The total changed. Refresh the cart to review the new price." }, 409);
   }
-  const details = { lines, subtotal, fee, total, shippingIndex, email: email.trim(), address: address.trim(), note: note.trim(), asset, network };
+  const details = { lines, subtotal, fee, total, shippingIndex, email: email.trim(), address: address.trim(), note: note.trim(), status: "pending_payment", paymentMethods: methods.map(({ details }) => {
+    const { name, network } = JSON.parse(details);
+    return { name, network };
+  }) };
   await env.DB.prepare("INSERT INTO order_requests (id,details) VALUES (?,?) ON CONFLICT(id) DO NOTHING")
     .bind(id, JSON.stringify(details)).run();
-  return json({ id, asset, network }, 201);
+  return checkoutResult(env, id, 201);
 }

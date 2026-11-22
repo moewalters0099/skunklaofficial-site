@@ -139,6 +139,42 @@ function renderCart(products, panel) {
   panel.dataset.total = subtotal + fee;
 }
 
+function showWallets(target, order) {
+  target.replaceChildren(make("h3", "Pay with crypto"), make("p", "Order total: " + price(order.total)));
+  if (!order.wallets.length) {
+    target.append(make("p", "No wallet is available right now. Contact SKUNKLA with your order reference."));
+    return;
+  }
+  target.append(make("p", "Choose one wallet. Confirm the network and use your wallet’s USD conversion for the total shown."));
+  for (const wallet of order.wallets) {
+    const details = make("details", "");
+    details.className = "cart-summary";
+    details.append(make("summary", wallet.name + " · " + wallet.network));
+    const address = make("p", wallet.address);
+    address.style.overflowWrap = "anywhere";
+    details.append(address);
+    if (/^data:image\/(png|jpeg);base64,/.test(wallet.qr_image ?? "")) {
+      const image = make("img", "");
+      image.src = wallet.qr_image;
+      image.alt = wallet.name + " wallet QR code";
+      image.style.cssText = "display:block;max-width:100%;width:200px;height:auto;background:#fff;padding:8px";
+      details.append(image);
+    }
+    const button = make("button", "Copy wallet address");
+    button.type = "button";
+    button.onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(wallet.address);
+        button.textContent = "Copied";
+      } catch {
+        button.textContent = "Select the address to copy it";
+      }
+    };
+    details.append(button);
+    target.append(details);
+  }
+}
+
 function setupCart(products, panel) {
   panel.innerHTML = `
     <p data-cart-message role="status"></p>
@@ -155,13 +191,13 @@ function setupCart(products, panel) {
       <details data-checkout class="checkout">
         <summary>Checkout</summary>
         <form data-order-form>
-          <p>Submit an order request. Payment and shipping are confirmed by SKUNKLA after review.</p>
+          <p>Place your order to see the available crypto wallets and payment details.</p>
           <label>Email <input name="email" type="email" maxlength="254" autocomplete="email" required></label>
           <label>Shipping address <textarea name="address" maxlength="500" autocomplete="street-address" rows="3" required></textarea></label>
-          <button type="submit">Submit order request</button>
+          <button type="submit">Place order</button>
         </form>
       </details>
-      <p data-order-result role="status"></p>
+      <p data-order-result role="status"></p><div data-wallets></div>
     </div>`;
   const select = panel.querySelector("[data-shipping]");
   shipping.forEach(([label, fee], index) => select.add(new Option(label + " · " + price(fee), index)));
@@ -191,7 +227,8 @@ function setupCart(products, panel) {
       try { saveCart(); } catch {}
       form.reset();
       renderCart(products, panel);
-      result.textContent = "Order request " + order.id + " received. Wait for payment instructions before sending funds.";
+      result.textContent = "Order " + order.id + " placed · Pending payment.";
+      showWallets(panel.querySelector("[data-wallets]"), order);
     } catch (error) {
       result.textContent = error.message;
     } finally {
