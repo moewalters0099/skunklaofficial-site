@@ -58,6 +58,13 @@ export async function onRequest(context) {
     return json({ error: "Enter a USD price and a whole-number stock count." }, 400);
   }
   if (kind === "products") {
+    if (input.description !== undefined) {
+      if (typeof input.description !== "string" || input.description.length > 4000) {
+        return json({ error: "Use up to 4,000 characters for the description." }, 400);
+      }
+      details.description = input.description.trim();
+    }
+
     if (input.subcategory !== undefined) {
       if (!["", "breakdowns", "deps", "indoors", "indoor-smalls", "lows"].includes(input.subcategory)) {
         return json({ error: "Choose a valid Flower subcategory." }, 400);

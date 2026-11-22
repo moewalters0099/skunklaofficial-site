@@ -102,6 +102,15 @@
       }
       select.value = record?.subcategory ?? "";
       fields.append(label, select);
+      const description = document.createElement("textarea");
+      description.id = "product-description";
+      description.name = "description";
+      description.maxLength = 4000;
+      description.rows = 4;
+      description.value = record?.description ?? "";
+      const descriptionLabel = node("label", "Product description (optional)");
+      descriptionLabel.htmlFor = description.id;
+      fields.append(descriptionLabel, description);
     }
     if (kind === "payments") addQrField(fields, record);
     form.elements.status.value = record?.status ?? "inactive";

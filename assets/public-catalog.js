@@ -53,52 +53,18 @@ function showCatalog(products, grid) {
   grid.replaceChildren(...matches.map((product) => {
     const card = make("article", "");
     card.className = "product-card";
+    const link = make("a", "");
+    link.href = "/product?id=" + encodeURIComponent(product.id);
+    link.className = "product-card-link";
     if (product.photo_url?.startsWith("https://")) {
       const photo = make("img", "");
       photo.src = product.photo_url;
-      photo.alt = product.name;
+      photo.alt = "";
       photo.loading = "lazy";
-      card.append(photo);
+      link.append(photo);
     }
-    card.append(make("h2", product.name), make("p", price(cents(product))));
-    if (product.video_url?.startsWith("https://")) {
-      if (/\.(mp4|webm)(?:[?#]|$)/i.test(product.video_url)) {
-        const video = make("video", "");
-        video.src = product.video_url;
-        video.controls = true;
-        video.playsInline = true;
-        video.preload = "none";
-        if (product.photo_url?.startsWith("https://")) video.poster = product.photo_url;
-        video.setAttribute("aria-label", product.name + " video");
-        card.append(video);
-      }
-      const link = make("a", "Open video in a new tab");
-      link.href = product.video_url;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      card.append(link);
-    }
-    const button = make("button", Number(product.stock) > 0 ? "Add to cart" : "Out of stock");
-    button.type = "button";
-    button.disabled = Number(product.stock) < 1;
-    button.onclick = () => {
-      const qty = cart.get(product.id) || 0;
-      if (qty >= Number(product.stock)) {
-        message.textContent = "Your cart already contains the available quantity.";
-        return;
-      }
-      cart.set(product.id, qty + 1);
-      try {
-        saveCart();
-        message.textContent = product.name + " added to your cart.";
-        openCart(products, message.textContent);
-      } catch {
-        if (qty) cart.set(product.id, qty);
-        else cart.delete(product.id);
-        message.textContent = "Your browser could not save the cart.";
-      }
-    };
-    card.append(button);
+    link.append(make("h2", product.name));
+    card.append(link, make("p", price(cents(product))));
     return card;
   }));
 }
@@ -318,13 +284,102 @@ function openCart(products, message = "") {
   if (!drawer.open) drawer.showModal();
 }
 
+function showProduct(products, root) {
+  const id = new URLSearchParams(location.search).get("id");
+  const product = products.find((item) => item.id === id);
+  const message = document.querySelector("#catalog-message");
+  if (!product) {
+    message.textContent = "This product is unavailable.";
+    return;
+  }
+  document.title = product.name + " | SKUNKLA";
+  message.textContent = "";
+  const media = root.querySelector("[data-product-media]");
+  const image = make("img", "");
+  if (product.photo_url?.startsWith("https://")) {
+    image.src = product.photo_url;
+    image.alt = product.name;
+    media.append(image);
+  }
+  if (product.video_url?.startsWith("https://")) {
+    const videoLink = make("a", "Open product video");
+    videoLink.href = product.video_url;
+    videoLink.target = "_blank";
+    videoLink.rel = "noopener noreferrer";
+    if (/\.(mp4|webm)(?:[?#]|$)/i.test(product.video_url)) {
+      const video = make("video", "");
+      video.src = product.video_url;
+      video.controls = true;
+      video.playsInline = true;
+      video.preload = "none";
+      if (image.src) video.poster = image.src;
+      video.setAttribute("aria-label", product.name + " video");
+      const selector = make("div", "");
+      selector.className = "product-actions";
+      for (const [label, showVideo] of [["Photo", false], ["Video", true]]) {
+        if (!showVideo && !image.src) continue;
+        const button = make("button", label);
+        button.setAttribute("aria-pressed", String(showVideo === !image.src));
+        button.onclick = () => {
+          image.hidden = showVideo;
+          video.hidden = !showVideo;
+          if (!showVideo) video.pause();
+          for (const peer of selector.children) peer.setAttribute("aria-pressed", String(peer === button));
+        };
+        selector.append(button);
+      }
+      video.hidden = Boolean(image.src);
+      media.append(video, selector);
+    }
+    media.append(videoLink);
+  }
+  root.querySelector("h1").textContent = [product.name, product.sku].filter(Boolean).join(" · ");
+  root.querySelector("[data-price]").textContent = price(cents(product));
+  root.querySelector("[data-category-name]").textContent = [product.category, product.subcategory?.replaceAll("-", " ")].filter(Boolean).join(" / ");
+  if (product.description) {
+    root.querySelector("[data-description]").textContent = product.description;
+    root.querySelector("[data-product-description]").hidden = false;
+  }
+  const form = root.querySelector("form");
+  const quantity = form.elements.quantity;
+  const stock = Number(product.stock);
+  quantity.max = String(stock);
+  if (stock < 1) {
+    form.hidden = true;
+    message.textContent = "Out of stock";
+  }
+  form.onsubmit = (event) => {
+    event.preventDefault();
+    const count = Number(quantity.value);
+    const previous = cart.get(id) ?? 0;
+    if (!Number.isSafeInteger(count) || count < 1 || previous + count > stock) {
+      message.textContent = "Choose a quantity within available stock, including items already in your cart.";
+      return;
+    }
+    cart.set(id, previous + count);
+    try {
+      saveCart();
+    } catch {
+      if (previous) cart.set(id, previous);
+      else cart.delete(id);
+      message.textContent = "Your browser could not save the cart.";
+      return;
+    }
+    if (event.submitter?.value === "checkout") location.assign("/checkout");
+    else openCart(products, product.name + " added to your cart.");
+  };
+  root.hidden = false;
+}
+
 (async () => {
   try {
     const response = await fetch("/api/catalog-products", { cache: "no-store" });
     if (!response.ok) throw new Error("Catalog unavailable");
     const products = await response.json();
     const grid = document.querySelector("[data-category]");
-    if (grid) {
+    const productPage = document.querySelector("[data-product-page]");
+    if (productPage) showProduct(products, productPage);
+    else if (grid) {
       showCatalog(products, grid);
       grid.closest("section")?.querySelector("[data-open-cart], .catalog-toolbar a")?.addEventListener("click", (event) => {
         if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
