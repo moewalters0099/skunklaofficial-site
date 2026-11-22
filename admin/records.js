@@ -91,16 +91,26 @@
       fields.append(label, input);
     }
     if (kind === "products") {
-      const label = node("label", "Flower subcategory (optional)");
-      label.htmlFor = "flower-subcategory";
+      const label = node("label", "Subcategory (optional)");
+      label.htmlFor = "product-subcategory";
       const select = document.createElement("select");
       select.id = label.htmlFor;
       select.name = "subcategory";
-      select.add(new Option("None", ""));
-      for (const group of ["Breakdowns", "Deps", "Indoors", "Indoor Smalls", "Lows"]) {
-        select.add(new Option(group, group.toLowerCase().replaceAll(" ", "-")));
+      const groups = {
+        flower: ["Breakdowns", "Deps", "Indoors", "Indoor Smalls", "Lows"],
+        wax: ["Badder", "Crumble", "Diamonds", "Distillate", "Hash", "Sugar", "Rosin", "Shatter"],
+      };
+      const category = fields.querySelector('[name="category"]');
+      function setSubcategories(selected = "") {
+        const options = Object.hasOwn(groups, category.value.trim().toLowerCase())
+          ? groups[category.value.trim().toLowerCase()] : [];
+        select.replaceChildren(new Option("None", ""));
+        for (const group of options) select.add(new Option(group, group.toLowerCase().replaceAll(" ", "-")));
+        select.value = [...select.options].some((option) => option.value === selected) ? selected : "";
+        select.hidden = label.hidden = options.length === 0;
       }
-      select.value = record?.subcategory ?? "";
+      setSubcategories(record?.subcategory);
+      category.addEventListener("input", () => setSubcategories(select.value));
       fields.append(label, select);
       const description = document.createElement("textarea");
       description.id = "product-description";

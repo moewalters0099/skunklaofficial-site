@@ -66,8 +66,13 @@ export async function onRequest(context) {
     }
 
     if (input.subcategory !== undefined) {
-      if (!["", "breakdowns", "deps", "indoors", "indoor-smalls", "lows"].includes(input.subcategory)) {
-        return json({ error: "Choose a valid Flower subcategory." }, 400);
+      const groups = {
+        flower: ["breakdowns", "deps", "indoors", "indoor-smalls", "lows"],
+        wax: ["badder", "crumble", "diamonds", "distillate", "hash", "sugar", "rosin", "shatter"],
+      };
+      const category = details.category.toLowerCase();
+      if (input.subcategory !== "" && (!Object.hasOwn(groups, category) || !groups[category].includes(input.subcategory))) {
+        return json({ error: "Choose a valid subcategory for this product." }, 400);
       }
       details.subcategory = input.subcategory;
     }

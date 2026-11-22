@@ -24,11 +24,13 @@ function saveCart() {
 
 function showCatalog(products, grid) {
   const category = grid.dataset.category;
-  const filters = document.querySelector("#flower-filters");
+  const filters = document.querySelector("[data-catalog-filters]");
   const query = new URLSearchParams(location.search);
   const subcategory = query.get("subcategory") || "";
   const bracket = query.get("price") || "";
   const lower = Number(bracket);
+  const waxRange = category === "wax" ? [...(filters?.querySelectorAll('[data-filter="price"]') ?? [])]
+    .find((link) => link.dataset.value === bracket && bracket !== "") : null;
   if (filters) {
     for (const link of filters.querySelectorAll("[data-filter]")) {
       const { filter, value } = link.dataset;
@@ -44,6 +46,10 @@ function showCatalog(products, grid) {
     if (!filters) return true;
     if (subcategory && item.subcategory !== subcategory) return false;
     const amount = cents(item);
+    if (category === "wax") {
+      return !waxRange || (amount >= lower * 100 &&
+        (!waxRange.dataset.upper || amount < Number(waxRange.dataset.upper) * 100));
+    }
     return !bracket || (amount >= lower * 100 && (lower === 1600 ? amount <= 200000 : amount < (lower + 400) * 100));
   });
   const matches = grid.hasAttribute("data-featured") ? listings.slice(0, 6) : listings;
