@@ -135,6 +135,8 @@ function renderCart(products, panel) {
   panel.querySelector("[data-subtotal]").textContent = price(subtotal);
   panel.querySelector("[data-total]").textContent = price(subtotal + fee);
   panel.querySelector("[data-cart-empty]").hidden = rows.length > 0;
+  panel.querySelector("[data-checkout]").hidden = units === 0;
+  panel.dataset.total = subtotal + fee;
 }
 
 function setupCart(products, panel) {
@@ -150,11 +152,52 @@ function setupCart(products, panel) {
       <textarea id="cart-note" maxlength="500" rows="2" placeholder="Optional"></textarea>
       <dl><div><dt>Subtotal</dt><dd data-subtotal></dd></div>
       <div><dt>Estimated total</dt><dd data-total></dd></div></dl>
-      <p class="cart-small">Checkout is currently unavailable.</p>
+      <details data-checkout class="checkout">
+        <summary>Checkout</summary>
+        <form data-order-form>
+          <p>Submit an order request. Payment and shipping are confirmed by SKUNKLA after review.</p>
+          <label>Email <input name="email" type="email" maxlength="254" autocomplete="email" required></label>
+          <label>Shipping address <textarea name="address" maxlength="500" autocomplete="street-address" rows="3" required></textarea></label>
+          <button type="submit">Submit order request</button>
+        </form>
+      </details>
+      <p data-order-result role="status"></p>
     </div>`;
   const select = panel.querySelector("[data-shipping]");
   shipping.forEach(([label, fee], index) => select.add(new Option(label + " · " + price(fee), index)));
   select.onchange = () => renderCart(products, panel);
+  const form = panel.querySelector("[data-order-form]");
+  const result = panel.querySelector("[data-order-result]");
+  let orderId;
+  form.onsubmit = async (event) => {
+    event.preventDefault();
+    orderId ??= crypto.randomUUID();
+    const submit = form.querySelector("button");
+    const data = Object.fromEntries(new FormData(form));
+    const stock = new Map(products.map((product) => [product.id, Number(product.stock)]));
+    const items = [...cart].map(([id, qty]) => ({ id, qty: Math.min(qty, stock.get(id) ?? 0) })).filter(({ qty }) => qty > 0);
+    submit.disabled = true;
+    result.textContent = "Submitting…";
+    try {
+      const response = await fetch("/api/order-requests", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, id: orderId, items, shippingIndex: Number(select.value),
+          note: panel.querySelector("#cart-note").value, expectedTotal: Number(panel.dataset.total) }),
+      });
+      const order = await response.json();
+      if (!response.ok) throw new Error(order.error ?? "Could not submit your order.");
+      orderId = undefined;
+      cart.clear();
+      try { saveCart(); } catch {}
+      form.reset();
+      renderCart(products, panel);
+      result.textContent = "Order request " + order.id + " received. Wait for payment instructions before sending funds.";
+    } catch (error) {
+      result.textContent = error.message;
+    } finally {
+      submit.disabled = false;
+    }
+  };
   renderCart(products, panel);
 }
 

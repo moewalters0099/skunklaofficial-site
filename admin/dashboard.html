@@ -9,6 +9,7 @@
   <script src="/admin/blog-editor.js?v=8cdf4c23c31e" defer></script>
   <script src="/admin/workspace.js?v=ae2b938868b0" defer></script>
   <script src="/admin/records.js?v=2aa6adfbc944" defer></script>
+  <script src="/admin/orders.js?v=d9a3153fefba" defer></script>
 </head>
 <body>
 <header class="topbar"><a class="brand" href="#overview">SKUNKLA <span>ADMIN</span></a><div><a href="/">View site</a><button id="theme-toggle" type="button" aria-pressed="false">Dark mode</button><button id="logout" type="button">Sign out</button></div></header>
@@ -33,7 +34,7 @@
     </section>
     <section id="orders" data-view hidden>
       <h1>Orders</h1>
-      <p class="panel">Online checkout is currently unavailable, so this dashboard has no order records.</p>
+      <p id="order-list-status" role="status"></p><div id="order-list"></div>
     </section>
     <section id="products" data-view hidden>
       <div class="view-header"><h1>Products</h1><button type="button" id="products-add" class="primary">Add product</button></div>
