@@ -51,3 +51,5 @@ tbody tr:last-child td{border-bottom:0}
 .payment-grid code{display:block;overflow-wrap:anywhere;margin-bottom:16px}
 dialog{width:min(92vw,510px);max-height:90vh;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);padding:24px}
 dialog::backdrop{background:#17141299}
+.payment-qr{display:block;width:min(100%,240px);height:auto;object-fit:contain;margin:12px 0;padding:10px;background:white;border:1px solid var(--line);border-radius:4px}
+#remove-payment-qr{width:auto;margin-right:8px}

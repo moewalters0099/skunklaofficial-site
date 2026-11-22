@@ -7,6 +7,20 @@ const fields = {
   payments: { name: 120, network: 80, address: 256, status: 8 },
 };
 
+function validQrImage(value) {
+  if (typeof value !== "string" || value.length > 350000) return false;
+  const match = /^data:image\/(png|jpeg);base64,([A-Za-z0-9+/]+={0,2})$/.exec(value);
+  if (!match) return false;
+  try {
+    const bytes = atob(match[2]);
+    return bytes.length <= 256 * 1024 && (match[1] === "png"
+      ? bytes.startsWith("\x89PNG\r\n\x1a\n")
+      : bytes.startsWith("\xff\xd8\xff"));
+  } catch {
+    return false;
+  }
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
   const method = request.method;
@@ -50,9 +64,15 @@ export async function onRequest(context) {
       details[field] = value;
     }
   }
+  if (kind === "payments" && input.qr_image != null) {
+    if (input.qr_image !== "" && !validQrImage(input.qr_image)) {
+      return json({ error: "Choose a PNG or JPEG QR image up to 256 KB." }, 400);
+    }
+    details.qr_image = input.qr_image;
+  }
   const now = new Date().toISOString();
   if (id) {
-    const updated = await env.DB.prepare("UPDATE admin_records SET details=?, updated_at=? WHERE id=? AND kind=?")
+    const updated = await env.DB.prepare("UPDATE admin_records SET details=json_patch(details, ?), updated_at=? WHERE id=? AND kind=?")
       .bind(JSON.stringify(details), now, id, kind).run();
     if (!updated.meta.changes) return json({ error: "Record was not found." }, 404);
     return json({ id });

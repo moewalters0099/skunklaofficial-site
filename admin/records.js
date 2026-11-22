@@ -18,6 +18,51 @@
   const data = {};
   let editing;
 
+  function qrPhoto(source) {
+    const image = document.createElement("img");
+    image.src = source;
+    image.alt = "Payment QR code";
+    image.className = "payment-qr";
+    return image;
+  }
+
+  function addQrField(fields, record) {
+    const label = node("label", "QR code photo (optional)");
+    label.htmlFor = "payment-qr-file";
+    const file = document.createElement("input");
+    file.id = label.htmlFor;
+    file.type = "file";
+    file.accept = "image/png,image/jpeg";
+    const help = node("small", "PNG or JPEG, up to 256 KB.");
+    fields.append(label, file, help);
+    if (record?.qr_image) {
+      const remove = document.createElement("input");
+      remove.type = "checkbox";
+      remove.id = "remove-payment-qr";
+      const removeLabel = node("label", "Remove saved QR photo");
+      removeLabel.htmlFor = remove.id;
+      removeLabel.prepend(remove);
+      fields.append(qrPhoto(record.qr_image), removeLabel);
+    }
+  }
+
+  async function prepareQrPhoto(payload) {
+    const file = document.querySelector("#payment-qr-file").files[0];
+    if (!file) {
+      if (document.querySelector("#remove-payment-qr")?.checked) payload.qr_image = "";
+      return;
+    }
+    if (file.size > 256 * 1024 || !["image/png", "image/jpeg"].includes(file.type)) {
+      throw new Error("Choose a PNG or JPEG QR image up to 256 KB.");
+    }
+    payload.qr_image = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("Could not read the QR image."));
+      reader.readAsDataURL(file);
+    });
+  }
+
   function node(tag, content) {
     const element = document.createElement(tag);
     element.textContent = content;
@@ -45,6 +90,7 @@
       input.value = record?.[key] ?? "";
       fields.append(label, input);
     }
+    if (kind === "payments") addQrField(fields, record);
     form.elements.status.value = record?.status ?? "inactive";
     feedback.textContent = "";
     dialog.showModal();
@@ -68,7 +114,9 @@
       if (kind === "payments") {
         const card = node("li", "");
         const address = node("code", record.address);
-        card.append(node("h2", record.name), node("p", record.network + " · " + record.status), address, editButton(kind, record));
+        card.append(node("h2", record.name), node("p", record.network + " · " + record.status), address);
+        if (record.qr_image) card.append(qrPhoto(record.qr_image));
+        card.append(editButton(kind, record));
         return card;
       }
       const row = node("tr", "");
@@ -133,9 +181,11 @@
     submit.disabled = true;
     feedback.textContent = "Saving…";
     try {
+      const payload = { ...Object.fromEntries(new FormData(form)), id };
+      if (kind === "payments") await prepareQrPhoto(payload);
       await api("/api/admin-records?kind=" + kind, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...Object.fromEntries(new FormData(form)), id }),
+        body: JSON.stringify(payload),
       });
       dialog.close();
       await load(kind);
