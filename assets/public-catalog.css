@@ -20,3 +20,16 @@
 .cart-summary dd{margin:4px 0;font-weight:bold}
 .cart-small{font-size:.88rem;color:#555}
 .cart-link{display:block;text-align:center;padding:9px;background:#271e1c;color:white;border-radius:5px}
+.checkout-shell{width:min(1120px,100%);margin:auto;padding:clamp(16px,4vw,44px);box-sizing:border-box}
+.checkout-shell h1{font-size:clamp(2rem,5vw,3rem);margin:12px 0 22px}
+.checkout-grid{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);gap:24px;align-items:start}
+.checkout-card{background:white;border:1px solid #ded6cf;border-radius:12px;padding:clamp(14px,3vw,24px);min-width:0}
+.checkout-card h2{margin:0 0 12px}
+.checkout-card label{display:block;margin:10px 0;font-weight:600}
+.checkout-card input,.checkout-card select,.checkout-card textarea{display:block;width:100%;box-sizing:border-box;border:1px solid #a69a91;border-radius:5px;padding:10px;margin-top:5px;background:white;color:#241b17;font:inherit}
+.checkout-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.checkout-card .cart-link{width:100%;border:0;font:inherit;cursor:pointer}
+[data-checkout][hidden]{display:none}
+.checkout-card [data-order-result]{overflow-wrap:anywhere}
+@media(max-width:720px){.checkout-grid{grid-template-columns:1fr}}
+@media(max-width:380px){.checkout-pair{grid-template-columns:1fr;gap:0}}

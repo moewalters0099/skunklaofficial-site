@@ -45,6 +45,15 @@ export async function onRequestPost({ request, env }) {
       new Set(items.map((item) => item.id)).size !== items.length) {
     return json({ error: "One or more cart items are invalid." }, 400);
   }
+  const contact = {};
+  for (const [key, max] of [["firstName",80],["lastName",80],["phone",40]]) {
+    const value = input[key];
+    if (value === undefined) continue;
+    if (typeof value !== "string" || value.length > max || (key !== "phone" && !value.trim())) {
+      return json({ error: "Check the name and phone fields." }, 400);
+    }
+    contact[key] = value.trim();
+  }
   const previous = await env.DB.prepare("SELECT id FROM order_requests WHERE id=?").bind(id).first();
   if (previous) return checkoutResult(env, id);
 
@@ -71,7 +80,7 @@ export async function onRequestPost({ request, env }) {
   if (!Number.isSafeInteger(total) || total !== expectedTotal) {
     return json({ error: "The total changed. Refresh the cart to review the new price." }, 409);
   }
-  const details = { lines, subtotal, fee, total, shippingIndex, email: email.trim(), address: address.trim(), note: note.trim(), status: "pending_payment", paymentMethods: methods.map(({ details }) => {
+  const details = { ...contact, lines, subtotal, fee, total, shippingIndex, email: email.trim(), address: address.trim(), note: note.trim(), status: "pending_payment", paymentMethods: methods.map(({ details }) => {
     const { name, network } = JSON.parse(details);
     return { name, network };
   }) };

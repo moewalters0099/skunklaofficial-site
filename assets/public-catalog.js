@@ -176,40 +176,71 @@ function showWallets(target, order) {
 }
 
 function setupCart(products, panel) {
-  panel.innerHTML = `
+  const checkout = Boolean(document.querySelector("[data-checkout-page]"));
+  const summary = `
+    <h2>Order summary</h2>
     <p data-cart-message role="status"></p>
     <p data-cart-empty hidden>Your cart is empty.</p>
     <div class="cart-lines" data-cart-items></div>
-    <div class="cart-summary">
-      <label for="cart-shipping">Shipping estimate</label>
-      <select id="cart-shipping" data-shipping></select>
-      <p class="cart-small">First Class · $15 for eligible small items. Eligibility has not been set up.</p>
-      <label for="cart-note">Order note</label>
-      <textarea id="cart-note" maxlength="500" rows="2" placeholder="Optional"></textarea>
-      <dl><div><dt>Subtotal</dt><dd data-subtotal></dd></div>
-      <div><dt>Estimated total</dt><dd data-total></dd></div></dl>
-      <details data-checkout class="checkout">
-        <summary>Checkout</summary>
-        <form data-order-form>
-          <p>Place your order to see the available crypto wallets and payment details.</p>
-          <label>Email <input name="email" type="email" maxlength="254" autocomplete="email" required></label>
-          <label>Shipping address <textarea name="address" maxlength="500" autocomplete="street-address" rows="3" required></textarea></label>
-          <button type="submit">Place order</button>
-        </form>
-      </details>
-      <p data-order-result role="status"></p><div data-wallets></div>
+    <label for="cart-shipping">Shipping</label>
+    <select id="cart-shipping" data-shipping></select>
+    ${checkout ? `<label for="cart-note">Order note (optional)</label><textarea id="cart-note" maxlength="500" rows="2"></textarea>` : ""}
+    <dl><div><dt>Subtotal</dt><dd data-subtotal></dd></div>
+    <div><dt>Total (USD)</dt><dd data-total></dd></div></dl>`;
+  function field(label, name, autocomplete, limit, type = "text", required = true) {
+    return `<label>${label}<input name="${name}" type="${type}" autocomplete="${autocomplete}" maxlength="${limit}" ${required ? "required" : ""}></label>`;
+  }
+  panel.innerHTML = checkout ? `
+    <form class="checkout-grid" data-order-form>
+      <section class="checkout-card">
+        <h2>Billing details</h2>
+        <p>Use the address where you want your order delivered. Required fields are marked with *.</p>
+        <div class="checkout-pair">${field("First name *","firstName","given-name",80)}
+        ${field("Last name *","lastName","family-name",80)}</div>
+        <label>Country / Region *<select name="country" autocomplete="country-name" required><option>United States</option></select></label>
+        ${field("Street address *","street","address-line1",140)}
+        ${field("Apartment, suite or unit (optional)","unit","address-line2",100,"text",false)}
+        ${field("Town / City *","city","address-level2",80)}
+        <div class="checkout-pair">${field("State *","state","address-level1",50)}
+        ${field("ZIP code *","zip","postal-code",10)}</div>
+        <div class="checkout-pair">${field("Phone (optional)","phone","tel",40,"tel",false)}
+        ${field("Email address *","email","email",254,"email")}</div>
+      </section>
+      <section class="checkout-card cart-summary">
+        ${summary}
+        <div data-checkout>
+          <h2>Payment information</h2>
+          <p><strong>Cryptocurrency</strong></p>
+          <p>Place your order to see the available wallets and QR codes.</p>
+          <button type="submit" class="cart-link">Place order</button>
+        </div>
+        <p data-order-result role="status"></p><div data-wallets></div>
+      </section>
+    </form>` : `
+    <div class="cart-summary">${summary}
+      <a data-checkout class="cart-link" href="/checkout">Checkout</a>
     </div>`;
   const select = panel.querySelector("[data-shipping]");
   shipping.forEach(([label, fee], index) => select.add(new Option(label + " · " + price(fee), index)));
-  select.onchange = () => renderCart(products, panel);
+  const selected = new URLSearchParams(location.search).get("shipping");
+  if (selected !== null && shipping[Number(selected)]) select.value = String(Number(selected));
+  const refresh = () => {
+    renderCart(products, panel);
+    if (!checkout) panel.querySelector("[data-checkout]").href = "/checkout?shipping=" + select.value;
+  };
+  select.onchange = refresh;
+  refresh();
+  if (!checkout) return;
   const form = panel.querySelector("[data-order-form]");
   const result = panel.querySelector("[data-order-result]");
   let orderId;
   form.onsubmit = async (event) => {
     event.preventDefault();
     orderId ??= crypto.randomUUID();
-    const submit = form.querySelector("button");
+    const submit = form.querySelector('button[type="submit"]');
     const data = Object.fromEntries(new FormData(form));
+    const { firstName, lastName, country, street, unit, city, state, zip, phone, email } = data;
+    const address = [street, unit, city, state + " " + zip, country].map((line) => line.trim()).filter(Boolean).join(", ");
     const stock = new Map(products.map((product) => [product.id, Number(product.stock)]));
     const items = [...cart].map(([id, qty]) => ({ id, qty: Math.min(qty, stock.get(id) ?? 0) })).filter(({ qty }) => qty > 0);
     submit.disabled = true;
@@ -217,7 +248,7 @@ function setupCart(products, panel) {
     try {
       const response = await fetch("/api/order-requests", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, id: orderId, items, shippingIndex: Number(select.value),
+        body: JSON.stringify({ email, address, firstName, lastName, phone, id: orderId, items, shippingIndex: Number(select.value),
           note: panel.querySelector("#cart-note").value, expectedTotal: Number(panel.dataset.total) }),
       });
       const order = await response.json();
@@ -226,6 +257,7 @@ function setupCart(products, panel) {
       cart.clear();
       try { saveCart(); } catch {}
       form.reset();
+      form.querySelector(".checkout-card").hidden = true;
       renderCart(products, panel);
       result.textContent = "Order " + order.id + " placed · Pending payment.";
       showWallets(panel.querySelector("[data-wallets]"), order);

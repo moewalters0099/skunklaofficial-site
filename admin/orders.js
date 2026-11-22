@@ -22,6 +22,8 @@
           make("p", shippingNames[order.shippingIndex] + " shipping · " + money(order.fee)),
           make("p", (order.paymentMethods ?? [{ name: order.asset, network: order.network }]).map(({ name, network }) => name + " · " + network).join(", ")),
           make("p", "Estimated total: " + money(order.total)));
+        if (order.firstName || order.lastName) card.append(make("p", "Name: " + [order.firstName, order.lastName].filter(Boolean).join(" ")));
+        if (order.phone) card.append(make("p", "Phone: " + order.phone));
         const items = make("ul", "");
         items.append(...order.lines.map((line) => make("li", line.qty + " × " + line.name + " · " + money(line.unitPrice) + " each")));
         card.append(items);
