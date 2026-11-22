@@ -23,7 +23,9 @@ function saveCart() {
 }
 
 function showCatalog(products, grid) {
-  const category = grid.dataset.category;
+  const requestedCategory = new URLSearchParams(location.search).get("category");
+  const category = grid.dataset.category || (grid.hasAttribute("data-featured") ? "" : requestedCategory);
+  const search = (new URLSearchParams(location.search).get("q") ?? "").trim().toLowerCase();
   const filters = document.querySelector("[data-catalog-filters]");
   const query = new URLSearchParams(location.search);
   const subcategory = query.get("subcategory") || "";
@@ -44,6 +46,7 @@ function showCatalog(products, grid) {
   }
   const listings = products.filter((item) => {
     if (category && item.category.trim().toLowerCase() !== category) return false;
+    if (search && ![item.name, item.sku, item.category].some((value) => value?.toLowerCase().includes(search))) return false;
     if (!filters) return true;
     if (subcategory && item.subcategory !== subcategory) return false;
     const amount = cents(item);

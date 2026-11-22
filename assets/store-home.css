@@ -1,0 +1,51 @@
+.store-announcement{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;background:#181717;color:#fff;padding:12px clamp(16px,4vw,52px);font-size:.8rem}
+.store-announcement nav{display:flex;justify-content:flex-end;gap:16px;align-items:center}
+.store-announcement a,.store-head a,.store-bottom a,.store-menu a{text-decoration:none;color:inherit}
+.store-head{background:white;color:#211b19;display:flex;align-items:center;gap:clamp(12px,3vw,40px);padding:18px clamp(16px,4vw,52px)}
+.store-logo img{display:block;width:clamp(110px,15vw,190px);height:auto}
+.store-search{display:flex;flex:1;min-width:0;border:1px solid #a99e99;border-radius:8px;overflow:hidden}
+.store-search input,.store-search select,.store-head button,.store-bottom button,.store-search button,.store-menu button{font:inherit;color:inherit;background:white;border:0;padding:10px}
+.store-search input{flex:1;min-width:0}
+.store-search select,.store-search button{border-inline-end:1px solid #ddd}
+.store-head button,.store-bottom button,.store-menu button{cursor:pointer}
+.store-actions{display:flex;align-items:center;gap:14px;margin-left:auto;white-space:nowrap}
+.store-cart-count{display:inline-grid;place-items:center;min-width:20px;min-height:20px;border-radius:20px;background:#982a25;color:#fff;font-size:.75rem}
+.store-categories{display:flex;align-items:center;justify-content:center;gap:clamp(10px,3vw,42px);background:#2c2623;color:white;padding:14px 16px}
+.store-categories a{text-decoration:none;color:inherit}
+.store-categories details{position:relative}
+.store-categories details div{position:absolute;z-index:5;left:0;top:100%;width:max-content;background:#2c2623;padding:10px 16px;box-shadow:0 6px 14px #0002}
+.store-categories details a{display:block;padding:6px 0}
+.store-categories summary,.store-menu summary{cursor:pointer}
+.store-chips{display:flex;gap:10px;justify-content:safe center;overflow-x:auto;padding:12px 16px;background:#fbf7f2;color:#2c2623}
+.store-chips a{white-space:nowrap;text-decoration:none;color:inherit;border:1px solid #ded3ca;border-radius:5px;padding:7px 12px}
+.store-feature{max-width:1440px;margin:0 auto}
+.store-slide img{width:100%;height:auto;display:block}
+.store-slide [hidden]{display:none}
+.store-slide-controls{display:flex;gap:8px;justify-content:center;margin:12px}
+.store-slide-controls button{padding:0;background:#fff;border:2px solid #29201b;border-radius:50%;width:16px;height:16px;cursor:pointer}
+.store-slide-controls button[aria-pressed="true"]{background:#982a25}
+.store-menu{position:fixed;inset:0 auto 0 0;margin:0;width:min(87vw,400px);height:100dvh;max-height:none;max-width:none;border:0;border-right:4px solid #982a25;background:#fffaf5;color:#211b19;padding:16px 22px;overflow:auto}
+.store-menu::backdrop{background:#170e0ba6}
+.store-menu form{text-align:right}
+.store-menu form button{font-size:1.6rem;background:transparent}
+.store-menu nav>a,.store-menu summary,.store-menu-account a{display:block;padding:13px 0;border-bottom:1px solid #ddd}
+.store-menu summary::after{content:"＋";float:right}
+.store-menu details[open] summary::after{content:"−"}
+.store-menu details div a{display:block;padding:8px 16px}
+.store-menu-account{margin-top:24px}
+.mobile-store{display:none}
+@media(max-width:800px){
+  body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
+  .desktop-store{display:none}
+  .mobile-store{display:initial}
+  .store-announcement{grid-template-columns:1fr 1fr;gap:8px;padding:10px 12px;font-size:.72rem}
+  .store-announcement nav{grid-column:1/-1;justify-content:center;gap:24px;border-top:1px solid #ffffff40;padding-top:8px}
+  .store-head{flex-wrap:wrap;gap:8px;padding:10px 12px}
+  .store-logo img{width:132px}
+  .store-actions{gap:6px;font-size:.8rem}
+  .store-search{display:none;order:3;flex:1 0 100%;box-sizing:border-box}
+  .store-search.is-open{display:flex}
+  .store-search select{max-width:40%}
+  .store-bottom{position:fixed;z-index:4;inset:auto 0 0;display:grid;grid-template-columns:repeat(5,1fr);background:#fff;color:#211b19;border-top:1px solid #ddd;padding-bottom:env(safe-area-inset-bottom);font-size:.76rem}
+  .store-bottom a,.store-bottom button{display:grid;place-items:center;padding:15px 2px}
+}
