@@ -4,30 +4,49 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <title>Blog editor | SKUNKLA</title>
-  <style>
-    *{box-sizing:border-box}body{margin:0;background:#f3f3f3;color:#202124;font:16px system-ui,sans-serif}
-    header{background:#202124;color:white;padding:18px max(5%,20px);display:flex;justify-content:space-between;align-items:center;gap:12px}
-    main{max-width:850px;margin:28px auto;padding:0 16px}section,form{background:white;padding:clamp(16px,4vw,32px);border:1px solid #ddd;margin-bottom:16px}
-    label{display:block;font-weight:650;margin:14px 0 5px}input,textarea,select{width:100%;padding:10px;font:inherit;border:1px solid #aaa;border-radius:4px}
-    button{font:inherit;font-weight:650;padding:10px 14px;cursor:pointer;border:1px solid #999;border-radius:4px;background:white;color:#202124}
-    button[value="publish"]{background:#202124;color:white}button:disabled{opacity:.5}
-    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}h1,h2{margin-top:0}a{color:inherit}
-  </style>
+  <title>Admin dashboard | SKUNKLA</title>
+  <link rel="stylesheet" href="/admin/dashboard.css">
   <script src="/admin/blog-editor.js" defer></script>
 </head>
 <body>
-<header><strong>SKUNKLA · ADMIN</strong><button id="logout">Sign out</button></header>
-<main>
-  <h1>Blog editor</h1>
-  <p id="status" role="status">Checking session…</p>
-  <div id="editor" hidden>
-    <section aria-label="Select a post">
+<header class="topbar"><a class="brand" href="#overview">SKUNKLA <span>ADMIN</span></a><div><a href="/">View site</a><button id="logout" type="button">Sign out</button></div></header>
+<div id="workspace" class="workspace" hidden>
+  <nav aria-label="Dashboard">
+    <a href="#overview">Overview</a>
+    <a href="#catalog">Catalog</a>
+    <a href="#posts-view">Blog posts</a>
+    <a href="#account">Account</a>
+  </nav>
+  <main>
+    <section id="overview" data-view>
+      <h1>Overview</h1>
+      <div class="metrics">
+        <a href="#catalog"><strong id="category-count">—</strong>Catalog categories</a>
+        <a href="#posts-view"><strong id="published-count">—</strong>Published posts</a>
+        <a href="#posts-view"><strong id="draft-count">—</strong>Drafts</a>
+      </div>
+    </section>
+    <section id="catalog" data-view hidden>
+      <h1>Catalog</h1>
+      <p><a href="/catalog.html">Open public catalog</a></p>
+      <label for="catalog-search">Search categories</label>
+      <input type="search" id="catalog-search" placeholder="Find a category">
+      <p id="catalog-status" role="status"></p>
+      <ul id="catalog-links" class="catalog-grid"></ul>
+    </section>
+    <section id="account" data-view hidden>
+      <h1>Account</h1>
+      <dl class="panel"><dt>Signed in as</dt><dd id="account-email"></dd><dt>Role</dt><dd>Administrator</dd></dl>
+    </section>
+    <section id="posts-view" data-view hidden>
+      <h1>Blog posts</h1>
+      <div id="editor" hidden>
+    <section class="panel" aria-label="Select a post">
       <a href="/blog/">View public blog</a>
       <label for="posts">Your posts</label>
       <select id="posts"><option value="">New post</option></select>
     </section>
-    <form id="post-form">
+    <form id="post-form" class="panel">
       <h2 id="form-title">New post</h2>
       <label for="title">Title</label>
       <input id="title" name="title" maxlength="160" required>
@@ -41,7 +60,10 @@
       </div>
       <p id="result" role="status"></p>
     </form>
-  </div>
-</main>
+      </div>
+    </section>
+  </main>
+</div>
+<p id="status" role="status">Checking session…</p>
 </body>
 </html>
