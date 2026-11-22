@@ -24,7 +24,8 @@ function saveCart() {
 
 function showCatalog(products, grid) {
   const category = grid.dataset.category;
-  const matches = products.filter((item) => !category || item.category.trim().toLowerCase() === category);
+  const listings = products.filter((item) => !category || item.category.trim().toLowerCase() === category);
+  const matches = grid.hasAttribute("data-featured") ? listings.slice(0, 6) : listings;
   document.querySelector(".catalog-count").textContent = matches.length + (matches.length === 1 ? " item listed" : " items listed");
   const message = document.querySelector("#catalog-message");
   message.textContent = matches.length ? "" : "No products listed in this category yet.";
@@ -40,7 +41,17 @@ function showCatalog(products, grid) {
     }
     card.append(make("h2", product.name), make("p", price(cents(product))));
     if (product.video_url?.startsWith("https://")) {
-      const link = make("a", "Watch video");
+      if (/\.(mp4|webm)(?:[?#]|$)/i.test(product.video_url)) {
+        const video = make("video", "");
+        video.src = product.video_url;
+        video.controls = true;
+        video.playsInline = true;
+        video.preload = "none";
+        if (product.photo_url?.startsWith("https://")) video.poster = product.photo_url;
+        video.setAttribute("aria-label", product.name + " video");
+        card.append(video);
+      }
+      const link = make("a", "Open video in a new tab");
       link.href = product.video_url;
       link.target = "_blank";
       link.rel = "noopener noreferrer";
@@ -294,7 +305,7 @@ function openCart(products, message = "") {
     const grid = document.querySelector("[data-category]");
     if (grid) {
       showCatalog(products, grid);
-      document.querySelector(".catalog-toolbar a").addEventListener("click", (event) => {
+      grid.closest("section")?.querySelector("[data-open-cart], .catalog-toolbar a")?.addEventListener("click", (event) => {
         if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
         event.preventDefault();
         openCart(products);
