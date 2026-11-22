@@ -6,9 +6,9 @@
   <meta name="robots" content="noindex,nofollow">
   <title>Admin dashboard | SKUNKLA</title>
   <link rel="stylesheet" href="/admin/dashboard.css?v=e7c9eaac0d17">
-  <script src="/admin/blog-editor.js?v=0bb302d045fe" defer></script>
+  <script src="/admin/blog-editor.js?v=8cdf4c23c31e" defer></script>
   <script src="/admin/workspace.js?v=ae2b938868b0" defer></script>
-  <script src="/admin/records.js?v=9b4a4526d829" defer></script>
+  <script src="/admin/records.js?v=c7270a0905ae" defer></script>
 </head>
 <body>
 <header class="topbar"><a class="brand" href="#overview">SKUNKLA <span>ADMIN</span></a><div><a href="/">View site</a><button id="theme-toggle" type="button" aria-pressed="false">Dark mode</button><button id="logout" type="button">Sign out</button></div></header>
@@ -118,6 +118,11 @@
       <textarea id="summary" name="summary" maxlength="500" rows="2"></textarea>
       <label for="body">Article text</label>
       <textarea id="body" name="body" maxlength="50000" rows="12"></textarea>
+      <label for="post-photo">Photo URL (optional)</label>
+      <input type="url" id="post-photo" name="photo_url" maxlength="2048" placeholder="https://…">
+      <label for="post-video">Video URL (optional)</label>
+      <input type="url" id="post-video" name="video_url" maxlength="2048" placeholder="https://…">
+      <p>Use direct links to image or video files.</p>
       <div class="actions">
         <button type="submit" value="draft" id="draft">Save draft</button>
         <button type="submit" value="publish">Publish</button>

@@ -1,0 +1,2 @@
+ALTER TABLE blog_posts ADD COLUMN photo_url TEXT NOT NULL DEFAULT '';
+ALTER TABLE blog_posts ADD COLUMN video_url TEXT NOT NULL DEFAULT '';

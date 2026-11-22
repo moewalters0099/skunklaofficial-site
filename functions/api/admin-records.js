@@ -1,3 +1,4 @@
+import { mediaUrl } from "../_shared/media-url.js";
 import { onRequestGet as checkSession } from "./admin-session.js";
 
 const json = (data, status = 200) => Response.json(data, { status, headers: { "Cache-Control": "no-store" } });
@@ -41,6 +42,13 @@ export async function onRequest(context) {
   if (!["active", "inactive"].includes(details.status)) return json({ error: "Choose a valid status." }, 400);
   if (kind === "products" && (!/^\d{1,9}(\.\d{1,2})?$/.test(details.price) || !/^\d{1,9}$/.test(details.stock))) {
     return json({ error: "Enter a USD price and a whole-number stock count." }, 400);
+  }
+  if (kind === "products") {
+    for (const field of ["photo_url", "video_url"]) {
+      const value = mediaUrl(input?.[field]);
+      if (value === null) return json({ error: "Use direct HTTPS links for product media." }, 400);
+      details[field] = value;
+    }
   }
   const now = new Date().toISOString();
   if (id) {

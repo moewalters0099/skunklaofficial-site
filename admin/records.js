@@ -3,7 +3,7 @@
     products: {
       section: "products", noun: "product",
       fields: [["name", "Product name", 120], ["sku", "SKU", 80], ["category", "Category", 80],
-        ["price", "Price (USD)", 12, "decimal"], ["stock", "Stock units", 9, "numeric"]],
+        ["price", "Price (USD)", 12, "decimal"], ["stock", "Stock units", 9, "numeric"], ["photo_url", "Photo URL (optional)", 2048, "url"], ["video_url", "Video URL (optional)", 2048, "url"]],
     },
     payments: {
       section: "payments", noun: "payment method",
@@ -37,8 +37,11 @@
       input.id = label.htmlFor;
       input.name = key;
       input.maxLength = maxLength;
-      input.required = true;
-      if (inputMode) input.inputMode = inputMode;
+      input.required = inputMode !== "url";
+      if (inputMode === "url") {
+        input.type = "url";
+        input.placeholder = "Direct HTTPS link";
+      } else if (inputMode) input.inputMode = inputMode;
       input.value = record?.[key] ?? "";
       fields.append(label, input);
     }
@@ -71,6 +74,23 @@
       const row = node("tr", "");
       const product = node("td", record.name);
       product.append(node("small", record.sku));
+      if (record.photo_url?.startsWith("https://")) {
+        const photo = document.createElement("img");
+        photo.src = record.photo_url;
+        photo.alt = "";
+        photo.width = 48;
+        photo.height = 48;
+        photo.style.objectFit = "cover";
+        photo.loading = "lazy";
+        product.append(photo);
+      }
+      if (record.video_url?.startsWith("https://")) {
+        const video = node("a", "Open video");
+        video.href = record.video_url;
+        video.target = "_blank";
+        video.rel = "noopener noreferrer";
+        product.append(node("br", ""), video);
+      }
       const actions = node("td", "");
       actions.append(editButton(kind, record));
       const price = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(record.price));

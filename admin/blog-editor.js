@@ -70,7 +70,7 @@ async function api(path, options) {
 
 function showPost() {
   const post = posts.find((item) => item.id === selector.value);
-  for (const field of ["title", "summary", "body"]) {
+  for (const field of ["title", "summary", "body", "photo_url", "video_url"]) {
     form.elements[field].value = post?.[field] ?? "";
   }
   document.querySelector("#form-title").textContent = post ? "Edit post" : "New post";
