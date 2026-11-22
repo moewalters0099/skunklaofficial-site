@@ -1,0 +1,4 @@
+/admin/dashboard
+  Cache-Control: no-cache
+/admin/dashboard.html
+  Cache-Control: no-cache
