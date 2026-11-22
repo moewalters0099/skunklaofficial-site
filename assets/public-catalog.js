@@ -29,7 +29,7 @@ function showCatalog(products, grid) {
   const subcategory = query.get("subcategory") || "";
   const bracket = query.get("price") || "";
   const lower = Number(bracket);
-  const hasConfiguredRanges = category === "wax" || category === "vapes";
+  const hasConfiguredRanges = ["wax", "vapes", "edibles"].includes(category);
   const configuredRange = hasConfiguredRanges ? [...(filters?.querySelectorAll('[data-filter="price"]') ?? [])]
     .find((link) => link.dataset.value === bracket && bracket !== "") : null;
   if (filters) {
@@ -48,8 +48,11 @@ function showCatalog(products, grid) {
     if (subcategory && item.subcategory !== subcategory) return false;
     const amount = cents(item);
     if (hasConfiguredRanges) {
-      return !configuredRange || (amount >= lower * 100 &&
-        (!configuredRange.dataset.upper || amount < Number(configuredRange.dataset.upper) * 100));
+      if (!configuredRange) return true;
+      const upper = configuredRange.dataset.upper;
+      const upperCents = Number(upper) * 100;
+      return amount >= lower * 100 && (!upper || amount < upperCents ||
+        (configuredRange.hasAttribute("data-inclusive") && amount === upperCents));
     }
     return !bracket || (amount >= lower * 100 && (lower === 1600 ? amount <= 200000 : amount < (lower + 400) * 100));
   });
