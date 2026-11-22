@@ -29,7 +29,7 @@ function showCatalog(products, grid) {
   const subcategory = query.get("subcategory") || "";
   const bracket = query.get("price") || "";
   const lower = Number(bracket);
-  const hasConfiguredRanges = ["wax", "vapes", "edibles"].includes(category);
+  const hasConfiguredRanges = ["wax", "vapes", "edibles", "mushies"].includes(category);
   const configuredRange = hasConfiguredRanges ? [...(filters?.querySelectorAll('[data-filter="price"]') ?? [])]
     .find((link) => link.dataset.value === bracket && bracket !== "") : null;
   if (filters) {

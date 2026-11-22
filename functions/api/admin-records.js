@@ -71,6 +71,7 @@ export async function onRequest(context) {
         wax: ["badder", "crumble", "diamonds", "distillate", "hash", "sugar", "rosin", "shatter"],
         vapes: ["disposables", "nicotine", "vape-carts"],
         edibles: ["chocolate", "gummies", "snacks", "syrup"],
+        mushies: ["edibles", "shrooms"],
       };
       const category = details.category.toLowerCase();
       if (input.subcategory !== "" && (!Object.hasOwn(groups, category) || !groups[category].includes(input.subcategory))) {

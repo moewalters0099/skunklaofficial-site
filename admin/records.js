@@ -101,6 +101,7 @@
         wax: ["Badder", "Crumble", "Diamonds", "Distillate", "Hash", "Sugar", "Rosin", "Shatter"],
         vapes: ["Disposables", "Nicotine", "Vape Carts"],
         edibles: ["Chocolate", "Gummies", "Snacks", "Syrup"],
+        mushies: ["Edibles", "Shrooms"],
       };
       const category = fields.querySelector('[name="category"]');
       function setSubcategories(selected = "") {
