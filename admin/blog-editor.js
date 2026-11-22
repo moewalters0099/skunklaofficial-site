@@ -149,6 +149,7 @@ document.querySelector("#logout").addEventListener("click", async () => {
     document.querySelector("#workspace").hidden = false;
     status.hidden = true;
     showView();
+    document.dispatchEvent(new Event("dashboard-ready"));
     void loadCategories();
     await loadPosts();
     document.querySelector("#editor").hidden = false;

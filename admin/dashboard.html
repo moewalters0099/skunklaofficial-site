@@ -7,24 +7,77 @@
   <title>Admin dashboard | SKUNKLA</title>
   <link rel="stylesheet" href="/admin/dashboard.css">
   <script src="/admin/blog-editor.js" defer></script>
+  <script src="/admin/workspace.js" defer></script>
 </head>
 <body>
-<header class="topbar"><a class="brand" href="#overview">SKUNKLA <span>ADMIN</span></a><div><a href="/">View site</a><button id="logout" type="button">Sign out</button></div></header>
+<header class="topbar"><a class="brand" href="#overview">SKUNKLA <span>ADMIN</span></a><div><a href="/">View site</a><button id="theme-toggle" type="button" aria-pressed="false">Dark mode</button><button id="logout" type="button">Sign out</button></div></header>
 <div id="workspace" class="workspace" hidden>
   <nav aria-label="Dashboard">
     <a href="#overview">Overview</a>
-    <a href="#catalog">Catalog</a>
+    <a href="#orders">Orders</a>
+    <a href="#products">Products</a>
+    <a href="#catalog">Categories</a>
+    <a href="#payments">Payment methods</a>
+    <a href="#customers">Customers</a>
+    <a href="#analytics">Analytics</a>
+    <a href="#inventory">Inventory</a>
+    <a href="#admins">Manage admins</a>
     <a href="#posts-view">Blog posts</a>
     <a href="#account">Account</a>
   </nav>
   <main>
     <section id="overview" data-view>
       <h1>Overview</h1>
+      <p>Manage your catalog categories, blog posts and administrator accounts.</p>
+    </section>
+    <section id="orders" data-view hidden>
+      <h1>Orders</h1>
+      <p class="panel">Online checkout is currently unavailable, so this dashboard has no order records.</p>
+    </section>
+    <section id="products" data-view hidden>
+      <h1>Products</h1>
+      <div class="panel"><p>There are no product listings in the website catalog yet.</p><a href="#catalog">Browse categories</a></div>
+    </section>
+    <section id="payments" data-view hidden>
+      <h1>Payment methods</h1>
+      <p class="panel">No payment provider is connected.</p>
+    </section>
+    <section id="customers" data-view hidden>
+      <h1>Customers</h1>
+      <p class="panel">Customer accounts are currently unavailable on the website.</p>
+    </section>
+    <section id="analytics" data-view hidden>
+      <h1>Analytics</h1>
       <div class="metrics">
         <a href="#catalog"><strong id="category-count">—</strong>Catalog categories</a>
         <a href="#posts-view"><strong id="published-count">—</strong>Published posts</a>
         <a href="#posts-view"><strong id="draft-count">—</strong>Drafts</a>
       </div>
+    </section>
+    <section id="inventory" data-view hidden>
+      <h1>Inventory</h1>
+      <div class="panel"><p>Stock tracking needs product listings.</p><a href="#products">View products</a></div>
+    </section>
+    <section id="admins" data-view hidden>
+      <h1>Manage admins</h1>
+      <div class="panel">
+        <label for="admin-search">Search admins by email</label>
+        <input type="search" id="admin-search">
+        <p id="admin-list-status" role="status"></p>
+        <ul id="admin-list" class="admin-list"></ul>
+      </div>
+      <details class="panel">
+        <summary>Add new admin</summary>
+        <form id="add-admin">
+          <p>New admins can publish posts and add other administrators.</p>
+          <label for="new-admin-email">Email address</label>
+          <input id="new-admin-email" name="email" type="email" maxlength="254" required>
+          <label for="new-admin-password">Password</label>
+          <input id="new-admin-password" name="password" type="password" autocomplete="new-password" minlength="14" maxlength="128" required>
+          <div class="actions"><button type="submit">Create admin</button></div>
+          <p id="add-admin-status" role="status"></p>
+        </form>
+      </details>
     </section>
     <section id="catalog" data-view hidden>
       <h1>Catalog</h1>
