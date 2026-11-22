@@ -4,9 +4,10 @@
       section: "products", noun: "product",
       fields: [["name", "Product name", 120], ["sku", "SKU", 80], ["category", "Category", 80],
         ["price", "Price (USD)", 12, "decimal"], ["stock", "Stock units", 9, "numeric"], ["photo_url", "Main photo URL (optional)", 2048, "url"],
+        ["video_url", "Video URL (optional)", 2048, "url"],
         ["photo_url_2", "Photo URL 2 (optional)", 2048, "url"],
         ["photo_url_3", "Photo URL 3 (optional)", 2048, "url"],
-        ["photo_url_4", "Photo URL 4 (optional)", 2048, "url"], ["video_url", "Video URL (optional)", 2048, "url"]],
+        ["photo_url_4", "Photo URL 4 (optional)", 2048, "url"]],
     },
     payments: {
       section: "payments", noun: "payment method",
