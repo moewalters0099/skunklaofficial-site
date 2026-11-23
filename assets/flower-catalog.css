@@ -132,8 +132,9 @@
     color: #111;
     font: inherit;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     text-align: center;
+    text-transform: uppercase;
   }
 
   .flower-grid .category-cart-action :is(a, button):is(:hover, :focus-visible) {

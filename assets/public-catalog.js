@@ -332,8 +332,15 @@ function showCatalog(products, grid) {
     if (actions) card.append(actions);
     if (showCartAction && phone.matches) {
       card.append(renderCartAction(product, link.href));
-      link.addEventListener("click", (event) => {
-        if (event.pointerType !== "touch" || event.metaKey || event.ctrlKey ||
+      const photo = link.querySelector("img");
+      let photoPointerType;
+      photo?.addEventListener("pointerup", (event) => {
+        photoPointerType = event.pointerType;
+      });
+      photo?.addEventListener("click", (event) => {
+        const pointerType = event.pointerType || photoPointerType;
+        photoPointerType = undefined;
+        if (pointerType !== "touch" || event.metaKey || event.ctrlKey ||
             event.shiftKey || event.altKey || card.classList.contains("is-cart-open")) return;
         event.preventDefault();
         card.classList.add("is-cart-open");
