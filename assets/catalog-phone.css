@@ -5,8 +5,8 @@
 @media (max-width: 600px) {
   body:has([data-mobile-shop]) > .site-header,
   .catalog-main > :is(.catalog-top, .catalog-breadcrumb, .category-quicklinks),
-  .catalog-main :is(.catalog-toolbar, .product-action-bar),
   [data-mobile-shop] .product-card-actions,
+  .catalog-main :is(.catalog-sidebar, .catalog-toolbar, .product-action-bar),
   #catalog-message:empty {
     display: none;
   }
@@ -129,16 +129,68 @@
     gap: 9px;
   }
 
-  .shop-phone-toolbar select {
-    max-width: min(56vw, 190px);
-    color: #111;
-    background: #fff;
-    border: 0;
-    min-height: 40px;
-    font: inherit;
+  .shop-phone-sort,
+  [data-shop-columns] {
+    position: relative;
   }
 
-  .shop-phone-toolbar button,
+  .shop-phone-sort summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 38px;
+    color: #000;
+    font-size: 16px;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .shop-phone-sort summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .shop-phone-sort summary::after {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border: solid currentColor;
+    border-width: 0 2px 2px 0;
+    transform: translateY(-2px) rotate(45deg);
+  }
+
+  .shop-phone-sort[open] summary {
+    color: #666;
+  }
+
+  .shop-phone-sort-options {
+    position: absolute;
+    z-index: 21;
+    top: calc(100% + 12px);
+    left: 0;
+    width: min(200px, 75vw);
+    max-height: min(210px, 40dvh);
+    overflow: auto;
+    background: #f6f6f6;
+    box-shadow: 0 10px 24px #0003;
+  }
+
+  .shop-phone-sort-options button {
+    display: block;
+    width: 100%;
+    padding: 9px 15px;
+    border: 0;
+    background: transparent;
+    color: #000;
+    font: inherit;
+    text-align: left;
+  }
+
+  .shop-phone-sort-options button:is([aria-pressed="true"], :focus-visible) {
+    background: #000;
+    color: #fff;
+  }
+
+  [data-shop-columns],
   .shop-phone-tab {
     border: 0;
     background: #f1f1f1;
@@ -146,14 +198,56 @@
     font: inherit;
   }
 
-  .shop-phone-toolbar button {
-    min-width: 40px;
-    min-height: 40px;
-    border-radius: 5px;
+  [data-shop-columns] {
+    display: grid;
+    place-items: center;
+    padding: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 4px;
   }
 
-  .shop-phone-toolbar button[aria-pressed="true"] {
-    background: #e7e7e7;
+  [data-shop-columns] svg {
+    width: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+  }
+
+  [data-shop-columns]:is(:hover, :focus) {
+    background: #000;
+    color: #fff;
+  }
+
+  [data-shop-columns] span {
+    display: none;
+    position: absolute;
+    z-index: 21;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 5px 10px;
+    border-radius: 3px;
+    background: #000;
+    color: #fff;
+    box-shadow: 0 4px 10px #0004;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  [data-shop-columns]:is(:hover, :focus) span {
+    display: block;
+  }
+
+  [data-shop-columns] span::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #000;
   }
 
   .catalog-main .catalog-shell {

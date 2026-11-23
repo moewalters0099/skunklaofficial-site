@@ -144,7 +144,10 @@ function showCatalog(products, grid) {
     const pageSize = 12;
     const more = document.querySelector("[data-shop-more]");
     const phoneCount = document.querySelector(".shop-phone-count");
-    const sort = document.querySelector("[data-shop-sort]");
+    const sort = document.querySelector(".shop-phone-sort");
+    const sortLabel = sort.querySelector("[data-sort-label]");
+    const sortOptions = [...sort.querySelectorAll("[data-sort-value]")];
+    let sortValue = "";
     const columns = [...document.querySelectorAll("[data-shop-columns]")];
     let ordered = [];
     let visible = 0;
@@ -156,9 +159,10 @@ function showCatalog(products, grid) {
 
     function renderPhone() {
       const alphabetical = (a, b) => a.name.localeCompare(b.name);
-      ordered = [...listings].sort((a, b) => {
-        if (sort.value === "price-asc") return cents(a) - cents(b) || alphabetical(a, b);
-        if (sort.value === "price-desc") return cents(b) - cents(a) || alphabetical(a, b);
+      ordered = [...listings];
+      if (sortValue !== "latest") ordered.sort((a, b) => {
+        if (sortValue === "price-asc") return cents(a) - cents(b) || alphabetical(a, b);
+        if (sortValue === "price-desc") return cents(b) - cents(a) || alphabetical(a, b);
         return alphabetical(a, b);
       });
       visible = Math.min(pageSize, ordered.length);
@@ -184,6 +188,7 @@ function showCatalog(products, grid) {
     for (const button of columns) {
       button.onclick = () => {
         grid.dataset.shopColumns = button.dataset.shopColumns;
+        button.focus({ preventScroll: true });
         for (const peer of columns) peer.setAttribute("aria-pressed", String(peer === button));
       };
     }
@@ -194,7 +199,30 @@ function showCatalog(products, grid) {
       if (document.activeElement === more) next[0]?.querySelector("a")?.focus({ preventScroll: true });
       updateCount();
     };
-    sort.onchange = renderPhone;
+    for (const option of sortOptions) {
+      option.onclick = () => {
+        sortValue = option.dataset.sortValue;
+        sortLabel.textContent = option.textContent;
+        for (const peer of sortOptions) peer.setAttribute("aria-pressed", String(peer === option));
+        sort.open = false;
+        sort.querySelector("summary").focus({ preventScroll: true });
+        renderPhone();
+        if (sortValue === "popularity" || sortValue === "rating") {
+          phoneCount.textContent += sortValue === "popularity"
+            ? ". Popularity data unavailable."
+            : ". Rating data unavailable.";
+        }
+      };
+    }
+    document.addEventListener("click", (event) => {
+      if (sort.open && !sort.contains(event.target)) sort.open = false;
+    });
+    sort.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && sort.open) {
+        sort.open = false;
+        sort.querySelector("summary").focus();
+      }
+    });
     phone.addEventListener("change", () => {
       if (phone.matches) renderPhone();
       else {
