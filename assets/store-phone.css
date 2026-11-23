@@ -157,6 +157,10 @@
 
   .store-home-page .store-head [data-menu-open]::before {
     content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: 16px;
     height: 2px;
     border-radius: 1px;
