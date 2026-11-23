@@ -2,6 +2,25 @@ const cartKey = "skunkla-cart";
 const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 const price = (cents) => currency.format(cents / 100);
 const cents = (product) => Math.round(Number(product.price) * 100);
+function productPrice(product) {
+  const amounts = Object.values(product.weightPrices ?? {}).map((amount) => Math.round(Number(amount) * 100));
+  const low = cents(product);
+  const high = amounts.length ? Math.max(...amounts) : low;
+  return high === low ? price(low) : price(low) + " – " + price(high);
+}
+
+function cartLines(available) {
+  const used = new Map();
+  return [...cart].map(([key, qty]) => {
+    const [id, weight] = key.split("|");
+    const product = available.get(id);
+    const amount = weight ? product?.weightPrices?.[weight] : product?.weightPrices ? undefined : product?.price;
+    const stock = amount === undefined ? 0 : Math.max(0, Number(product.stock) - (used.get(id) ?? 0));
+    const remaining = Math.min(qty, stock);
+    used.set(id, (used.get(id) ?? 0) + remaining);
+    return { key, id, weight, qty, product, stock, remaining, unitPrice: Math.round(Number(amount) * 100) };
+  });
+}
 const make = (tag, value) => {
   const element = document.createElement(tag);
   element.textContent = value;
@@ -49,15 +68,15 @@ function showCatalog(products, grid) {
     if (search && ![item.name, item.sku, item.category].some((value) => value?.toLowerCase().includes(search))) return false;
     if (!filters) return true;
     if (subcategory && item.subcategory !== subcategory) return false;
-    const amount = cents(item);
+    const amounts = item.weightPrices ? Object.values(item.weightPrices).map((amount) => Math.round(Number(amount) * 100)) : [cents(item)];
     if (hasConfiguredRanges) {
       if (!configuredRange) return true;
       const upper = configuredRange.dataset.upper;
       const upperCents = Number(upper) * 100;
-      return amount >= lower * 100 && (!upper || amount < upperCents ||
-        (configuredRange.hasAttribute("data-inclusive") && amount === upperCents));
+      return amounts.some((amount) => amount >= lower * 100 && (!upper || amount < upperCents ||
+        (configuredRange.hasAttribute("data-inclusive") && amount === upperCents)));
     }
-    return !bracket || (amount >= lower * 100 && (lower === 1600 ? amount <= 200000 : amount < (lower + 400) * 100));
+    return !bracket || amounts.some((amount) => amount >= lower * 100 && (lower === 1600 ? amount <= 200000 : amount < (lower + 400) * 100));
   });
   const matches = grid.hasAttribute("data-featured") ? listings.slice(0, 6) : listings;
   document.querySelector(".catalog-count").textContent = matches.length + (matches.length === 1 ? " item listed" : " items listed");
@@ -77,7 +96,7 @@ function showCatalog(products, grid) {
       link.append(photo);
     }
     link.append(make("h2", product.name));
-    card.append(link, make("p", price(cents(product))));
+    card.append(link, make("p", productPrice(product)));
     return card;
   }));
 }
@@ -95,11 +114,11 @@ function renderCart(products, panel) {
   let subtotal = 0;
   let units = 0;
   const rows = [];
-  for (const [id, qty] of cart) {
-    const product = available.get(id);
-    const stock = Number(product?.stock ?? 0);
-    const remaining = Math.min(qty, stock);
-    const name = product?.name ?? "Unavailable product";
+  const lines = cartLines(available);
+  for (const { key: id, qty, product, weight, remaining, unitPrice } of lines) {
+    const reserved = lines.filter((line) => line.product?.id === product?.id).reduce((sum, line) => sum + line.remaining, 0);
+    const stock = remaining ? Number(product.stock) - reserved + remaining : 0;
+    const name = [product?.name ?? "Unavailable product", weight].filter(Boolean).join(" · ");
     const row = make("article", "");
     row.className = "cart-line";
     if (product?.photo_url?.startsWith("https://")) {
@@ -109,9 +128,9 @@ function renderCart(products, panel) {
       row.append(image);
     }
     const detail = make("div", "");
-    detail.append(make("strong", name), make("p", remaining ? price(cents(product)) + " each" : "Unavailable"));
+    detail.append(make("strong", name), make("p", remaining ? price(unitPrice) + " each" : "Unavailable"));
     units += remaining;
-    if (remaining) subtotal += remaining * cents(product);
+    if (remaining) subtotal += remaining * unitPrice;
     if (remaining && remaining < qty) detail.append(make("small", "Only " + remaining + " available"));
     const controls = make("div", "");
     controls.className = "cart-controls";
@@ -252,8 +271,9 @@ function setupCart(products, panel) {
     const data = Object.fromEntries(new FormData(form));
     const { firstName, lastName, country, street, unit, city, state, zip, phone, email } = data;
     const address = [street, unit, city, state + " " + zip, country].map((line) => line.trim()).filter(Boolean).join(", ");
-    const stock = new Map(products.map((product) => [product.id, Number(product.stock)]));
-    const items = [...cart].map(([id, qty]) => ({ id, qty: Math.min(qty, stock.get(id) ?? 0) })).filter(({ qty }) => qty > 0);
+    const available = new Map(products.map((product) => [product.id, product]));
+    const items = cartLines(available).filter(({ remaining }) => remaining > 0)
+      .map(({ id, weight, remaining }) => ({ id, weight, qty: remaining }));
     submit.disabled = true;
     result.textContent = "Submitting…";
     try {
@@ -424,7 +444,8 @@ async function showProduct(products, root) {
   }
   if (videoLink) media.append(videoLink);
   root.querySelector("h1").textContent = [product.name, product.sku].filter(Boolean).join(" · ");
-  root.querySelector("[data-price]").textContent = price(cents(product));
+  const priceLabel = root.querySelector("[data-price]");
+  priceLabel.textContent = productPrice(product);
   root.querySelector("[data-category-name]").textContent = [product.category, product.subcategory?.replaceAll("-", " ")].filter(Boolean).join(" / ");
   if (product.description) {
     root.querySelector("[data-description]").textContent = product.description;
@@ -432,6 +453,22 @@ async function showProduct(products, root) {
   }
   const form = root.querySelector("form");
   const quantity = form.elements.quantity;
+  let weightSelect;
+  if (product.weightPrices) {
+    const label = make("label", "Weight");
+    weightSelect = document.createElement("select");
+    weightSelect.required = true;
+    weightSelect.add(new Option("Choose a weight", ""));
+    for (const weight of ["Ounce", "Quarter Pound", "Half Pound", "Pound"]) {
+      const amount = product.weightPrices[weight];
+      if (amount !== undefined) weightSelect.add(new Option(weight + " · " + currency.format(Number(amount)), weight));
+    }
+    weightSelect.onchange = () => {
+      priceLabel.textContent = weightSelect.value ? currency.format(Number(product.weightPrices[weightSelect.value])) : productPrice(product);
+    };
+    label.append(weightSelect);
+    form.prepend(label);
+  }
   const stock = Number(product.stock);
   quantity.max = String(stock);
   if (stock < 1) {
@@ -441,17 +478,21 @@ async function showProduct(products, root) {
   form.onsubmit = (event) => {
     event.preventDefault();
     const count = Number(quantity.value);
-    const previous = cart.get(id) ?? 0;
-    if (!Number.isSafeInteger(count) || count < 1 || previous + count > stock) {
+    const weight = weightSelect?.value;
+    if (weightSelect && !weight) return;
+    const key = weight ? id + "|" + weight : id;
+    const previous = cart.get(key) ?? 0;
+    const reserved = cartLines(new Map([[id, product]])).reduce((sum, line) => sum + line.remaining, 0);
+    if (!Number.isSafeInteger(count) || count < 1 || reserved + count > stock) {
       message.textContent = "Choose a quantity within available stock, including items already in your cart.";
       return;
     }
-    cart.set(id, previous + count);
+    cart.set(key, previous + count);
     try {
       saveCart();
     } catch {
-      if (previous) cart.set(id, previous);
-      else cart.delete(id);
+      if (previous) cart.set(key, previous);
+      else cart.delete(key);
       message.textContent = "Your browser could not save the cart.";
       return;
     }

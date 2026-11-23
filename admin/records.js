@@ -119,6 +119,32 @@
       setSubcategories(record?.subcategory);
       category.addEventListener("input", () => setSubcategories(select.value));
       fields.append(label, select);
+      const weights = document.createElement("fieldset");
+      weights.append(node("legend", "Price by weight (USD)"));
+      weights.append(node("p", "Enter a price for each weight you offer. Leave unavailable weights blank."));
+      const basePrice = fields.querySelector('[name="price"]');
+      for (const weight of ["Ounce", "Quarter Pound", "Half Pound", "Pound"]) {
+        const input = document.createElement("input");
+        input.name = "weight:" + weight;
+        input.id = "weight-" + weight.replaceAll(" ", "-");
+        input.inputMode = "decimal";
+        input.maxLength = 12;
+        input.value = record?.weightPrices?.[weight] ?? "";
+        const title = node("label", weight);
+        title.htmlFor = input.id;
+        weights.append(title, input);
+      }
+      function syncWeights() {
+        const breakdown = select.value === "breakdowns";
+        weights.hidden = weights.disabled = !breakdown;
+        basePrice.hidden = breakdown;
+        fields.querySelector('label[for="record-price"]').hidden = breakdown;
+        basePrice.required = !breakdown;
+      }
+      select.addEventListener("change", syncWeights);
+      category.addEventListener("input", syncWeights);
+      fields.append(weights);
+      syncWeights();
       const description = document.createElement("textarea");
       description.id = "product-description";
       description.name = "description";
@@ -180,7 +206,10 @@
       }
       const actions = node("td", "");
       actions.append(editButton(kind, record));
-      const price = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(record.price));
+      const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+      const low = Number(record.price);
+      const high = Math.max(low, ...Object.values(record.weightPrices ?? {}).map(Number));
+      const price = currency.format(low) + (high > low ? " – " + currency.format(high) : "");
       row.append(product, node("td", record.category), node("td", price),
         node("td", record.stock), node("td", record.status), actions);
       return row;
@@ -221,6 +250,14 @@
     feedback.textContent = "Saving…";
     try {
       const payload = { ...Object.fromEntries(new FormData(form)), id };
+      if (kind === "products") {
+        payload.weightPrices = {};
+        for (const [field, value] of Object.entries(payload)) {
+          if (!field.startsWith("weight:")) continue;
+          if (value.trim()) payload.weightPrices[field.slice(7)] = value.trim();
+          delete payload[field];
+        }
+      }
       if (kind === "payments") await prepareQrPhoto(payload);
       await api("/api/admin-records?kind=" + kind, {
         method: "POST", headers: { "Content-Type": "application/json" },

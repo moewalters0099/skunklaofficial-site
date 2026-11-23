@@ -47,8 +47,22 @@ export async function onRequest(context) {
     return json({ error: "Invalid record ID." }, 400);
   }
   const details = {};
+  const breakdown = kind === "products" && String(input?.category ?? "").trim().toLowerCase() === "flower" && input?.subcategory === "breakdowns";
+  if (breakdown && input.weightPrices !== undefined) {
+    const weights = input.weightPrices;
+    const allowed = ["Ounce", "Quarter Pound", "Half Pound", "Pound"];
+    if (!weights || typeof weights !== "object" || Array.isArray(weights) ||
+        !Object.keys(weights).length || Object.entries(weights).some(([key, amount]) =>
+          !allowed.includes(key) || typeof amount !== "string" || !/^\d{1,9}(\.\d{1,2})?$/.test(amount))) {
+      return json({ error: "Enter a valid USD price for at least one weight." }, 400);
+    }
+    details.weightPrices = weights;
+    details.price = String(Math.min(...Object.values(weights).map(Number)));
+  } else if (kind === "products" && input?.weightPrices !== undefined) {
+    details.weightPrices = null;
+  }
   for (const [field, limit] of Object.entries(fields[kind])) {
-    const value = input?.[field];
+    const value = field === "price" && details.price !== undefined ? details.price : input?.[field];
     if (typeof value !== "string" || !value.trim() || value.length > limit) {
       return json({ error: "Check the " + field + " field." }, 400);
     }
@@ -96,7 +110,8 @@ export async function onRequest(context) {
   }
   const now = new Date().toISOString();
   if (id) {
-    const updated = await env.DB.prepare("UPDATE admin_records SET details=json_patch(details, ?), updated_at=? WHERE id=? AND kind=?")
+    const originalDetails = Object.hasOwn(details, "weightPrices") ? "json_remove(details, '$.weightPrices')" : "details";
+    const updated = await env.DB.prepare("UPDATE admin_records SET details=json_patch(" + originalDetails + ", ?), updated_at=? WHERE id=? AND kind=?")
       .bind(JSON.stringify(details), now, id, kind).run();
     if (!updated.meta.changes) return json({ error: "Record was not found." }, 404);
     return json({ id, videoConversion: await queueProductVideo(env, kind, id) });

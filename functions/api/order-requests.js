@@ -41,8 +41,9 @@ export async function onRequestPost({ request, env }) {
     return json({ error: "Check your cart, email and shipping address." }, 400);
   }
   if (items.some((item) => !item || typeof item.id !== "string" || !uuid.test(item.id) ||
-      !Number.isSafeInteger(item.qty) || item.qty < 1) ||
-      new Set(items.map((item) => item.id)).size !== items.length) {
+      !Number.isSafeInteger(item.qty) || item.qty < 1 ||
+      (item.weight !== undefined && !["Ounce", "Quarter Pound", "Half Pound", "Pound"].includes(item.weight))) ||
+      new Set(items.map((item) => item.id + "|" + (item.weight ?? ""))).size !== items.length) {
     return json({ error: "One or more cart items are invalid." }, 400);
   }
   const contact = {};
@@ -68,12 +69,17 @@ export async function onRequestPost({ request, env }) {
     .map(({ id: productId, details }) => [productId, JSON.parse(details)]));
   const lines = [];
   let subtotal = 0;
+  const quantities = new Map();
   for (const item of items) {
     const product = products.get(item.id);
-    if (!product || item.qty > Number(product.stock)) return json({ error: "Stock changed. Refresh your cart and check the quantities." }, 409);
-    const unitPrice = Math.round(Number(product.price) * 100);
+    const quantity = (quantities.get(item.id) ?? 0) + item.qty;
+    if (!product || quantity > Number(product.stock)) return json({ error: "Stock changed. Refresh your cart and check the quantities." }, 409);
+    quantities.set(item.id, quantity);
+    const amount = product.weightPrices ? product.weightPrices[item.weight] : item.weight ? undefined : product.price;
+    if (amount === undefined) return json({ error: "A weight option changed. Refresh your cart and choose an available weight." }, 409);
+    const unitPrice = Math.round(Number(amount) * 100);
     subtotal += unitPrice * item.qty;
-    lines.push({ name: product.name, qty: item.qty, unitPrice });
+    lines.push({ name: item.weight ? product.name + " · " + item.weight : product.name, qty: item.qty, unitPrice });
   }
   const fee = shipping[shippingIndex];
   const total = subtotal + fee;
