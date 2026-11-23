@@ -153,6 +153,45 @@
     card.append(link);
     const actions = window.storeProductActions?.controls(item);
     if (actions) card.append(actions);
+    const cartAction = element("div", "store-card-cart");
+    if (soldOut || Object.keys(item.weightPrices ?? {}).length) {
+      const options = element("a", "", soldOut ? "View product" : "Select options");
+      options.href = link.href;
+      cartAction.append(options);
+    } else {
+      const add = element("button", "", "Add to cart");
+      add.type = "button";
+      const message = element("span", "sr-only");
+      message.setAttribute("role", "status");
+      add.addEventListener("click", () => {
+        try {
+          const cart = new Map(JSON.parse(localStorage.getItem("skunkla-cart") || "[]"));
+          const quantity = Number(cart.get(item.id) ?? 0);
+          if (item.stock !== null && quantity >= Number(item.stock)) {
+            add.textContent = "Stock limit reached";
+            message.textContent = "Stock limit reached";
+            return;
+          }
+          cart.set(item.id, quantity + 1);
+          localStorage.setItem("skunkla-cart", JSON.stringify([...cart]));
+          updateCount();
+          add.textContent = "Added to cart";
+          message.textContent = name + " added to cart";
+        } catch {
+          add.textContent = "Try again";
+          message.textContent = "Could not update your cart.";
+        }
+      });
+      cartAction.append(add, message);
+    }
+    card.append(cartAction);
+    media.addEventListener("click", (event) => {
+      if (!window.matchMedia("(max-width: 600px) and (hover: none)").matches ||
+          event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || card.classList.contains("show-cart-action")) return;
+      event.preventDefault();
+      for (const selected of document.querySelectorAll(".store-product-shell.show-cart-action")) selected.classList.remove("show-cart-action");
+      card.classList.add("show-cart-action");
+    });
     return card;
   }
   async function loadShelves() {
