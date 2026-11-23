@@ -18,7 +18,7 @@
     }
   });
   const slides = [...document.querySelectorAll("#store-slide > a")];
-  const controls = [...document.querySelectorAll(".store-slide-controls button")];
+  const controls = [...document.querySelectorAll(".store-slide-controls button[aria-pressed]")];
   let activeSlide = 0;
   function showSlide(index) {
     activeSlide = (index + slides.length) % slides.length;
@@ -29,6 +29,56 @@
   for (const button of document.querySelectorAll("[data-slide-step]")) {
     button.onclick = () => showSlide(activeSlide + Number(button.dataset.slideStep));
   }
+
+  const categoryStrip = document.querySelector(".store-chips");
+  const banner = document.querySelector(".store-feature");
+  const categoryCarousel = document.querySelector(".store-chip-carousel");
+  const motion = document.querySelector("[data-store-motion]");
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let paused = reducedMotion.matches;
+  function moveCategories(direction, automatic = false) {
+    const maximum = categoryStrip.scrollWidth - categoryStrip.clientWidth;
+    const next = categoryStrip.scrollLeft + direction * (categoryStrip.firstElementChild.offsetWidth + 16);
+    const position = automatic && categoryStrip.scrollLeft >= maximum - 1 ? 0 : Math.max(0, Math.min(next, maximum));
+    categoryStrip.scrollTo({ left: position, behavior: reducedMotion.matches ? "instant" : "smooth" });
+  }
+  for (const control of document.querySelectorAll("[data-category-step]")) {
+    control.onclick = () => moveCategories(Number(control.dataset.categoryStep));
+  }
+  function updateMotion() {
+    motion.textContent = paused ? "Play rotation" : "Pause rotation";
+  }
+  motion.onclick = () => {
+    paused = !paused;
+    updateMotion();
+  };
+  reducedMotion.addEventListener("change", (event) => {
+    paused = event.matches;
+    updateMotion();
+  });
+  updateMotion();
+  function canRotate(region) {
+    return !paused && !document.hidden && !region.matches(":hover, :focus-within");
+  }
+  window.setInterval(() => {
+    if (canRotate(banner)) showSlide(activeSlide + 1);
+  }, 6000);
+  window.setInterval(() => {
+    if (canRotate(categoryCarousel)) moveCategories(1, true);
+  }, 4200);
+  let swipeStart;
+  banner.addEventListener("touchstart", (event) => {
+    const touch = event.changedTouches[0];
+    swipeStart = [touch.clientX, touch.clientY];
+  }, { passive: true });
+  banner.addEventListener("touchend", (event) => {
+    if (!swipeStart) return;
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - swipeStart[0];
+    const dy = touch.clientY - swipeStart[1];
+    swipeStart = undefined;
+    if (Math.abs(dx) >= 45 && Math.abs(dx) > Math.abs(dy)) showSlide(activeSlide + (dx < 0 ? 1 : -1));
+  }, { passive: true });
 
   const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
   const isSale = (item) => Number(item.originalPrice) > Number(item.price);
@@ -68,7 +118,11 @@
     if (discounted) price.append(element("del", "", money.format(Number(item.originalPrice))));
     price.append(high > amount ? money.format(amount) + " – " + money.format(high) : money.format(amount));
     link.append(media, element("span", "store-card-category", category), element("h3", "", name), price);
-    return link;
+    const card = element("article", "store-product-shell");
+    card.append(link);
+    const actions = window.storeProductActions?.controls(item);
+    if (actions) card.append(actions);
+    return card;
   }
   async function loadShelves() {
     const shelves = [...document.querySelectorAll("[data-shelf]")];
@@ -76,6 +130,7 @@
       const response = await fetch("/api/catalog-products");
       if (!response.ok) throw new Error("Catalog unavailable");
       const products = await response.json();
+      window.storeProductActions?.mount(products, shelves[0]);
       const byId = new Map(products.map((item) => [item.id, item]));
       for (const shelf of shelves) {
         const collection = shelf.dataset.shelf;

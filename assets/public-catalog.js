@@ -43,6 +43,7 @@ function saveCart() {
 }
 
 function showCatalog(products, grid) {
+  window.storeProductActions?.mount(products, grid);
   const requestedCategory = new URLSearchParams(location.search).get("category");
   const category = grid.dataset.category || (grid.hasAttribute("data-featured") ? "" : requestedCategory);
   const search = (new URLSearchParams(location.search).get("q") ?? "").trim().toLowerCase();
@@ -107,6 +108,8 @@ function showCatalog(products, grid) {
     }
     cost.append(productPrice(product));
     card.append(link, cost);
+    const actions = window.storeProductActions?.controls(product);
+    if (actions) card.append(actions);
     return card;
   }));
 }
