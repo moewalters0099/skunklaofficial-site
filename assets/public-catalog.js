@@ -91,7 +91,14 @@ function showCatalog(products, grid) {
   const count = document.querySelector(".catalog-count");
   const phone = grid.hasAttribute("data-mobile-shop") && matchMedia("(max-width: 600px)");
   const showCartAction = phone && categoryPage;
-  if (showCartAction) updateCartCounts();
+  if (showCartAction) {
+    updateCartCounts();
+    document.addEventListener("click", (event) => {
+      for (const card of grid.querySelectorAll(".is-cart-open")) {
+        if (!card.contains(event.target)) card.classList.remove("is-cart-open");
+      }
+    });
+  }
   const newProducts = new Set((grid.dataset.flowerNew ?? "").split(" "));
   const rank = new Map((grid.dataset.flowerOrder ?? "").split(" ").map((id, index) => [id, index]));
   if (categoryPage) {
@@ -251,7 +258,7 @@ function showCatalog(products, grid) {
     action.className = "category-cart-action";
     const soldOut = stockUnits(product) <= 0;
     if (soldOut || Object.keys(product.weightPrices ?? {}).length) {
-      const options = make("a", soldOut ? "View product" : "Select options");
+      const options = make("a", soldOut ? "Read more" : "Select options");
       options.href = href;
       action.append(options);
       return action;
@@ -324,7 +331,15 @@ function showCatalog(products, grid) {
     card.append(link, cost);
     const actions = window.storeProductActions?.controls(product);
     if (actions) card.append(actions);
-    if (showCartAction) card.append(renderCartAction(product, link.href));
+    if (showCartAction) {
+      card.append(renderCartAction(product, link.href));
+      link.addEventListener("click", (event) => {
+        if (event.pointerType !== "touch" || event.metaKey || event.ctrlKey ||
+            event.shiftKey || event.altKey || card.classList.contains("is-cart-open")) return;
+        event.preventDefault();
+        card.classList.add("is-cart-open");
+      });
+    }
     return card;
   }
   if (phone) configurePhoneShop();
