@@ -18,9 +18,15 @@
 .flower-toolbar,.flower-tools,.flower-layouts{display:flex;align-items:center;gap:8px}
 .flower-toolbar{justify-content:space-between;flex-wrap:wrap;margin:0 0 26px;min-height:36px}
 .flower-toolbar p{margin:0;color:#555}
-.flower-toolbar select,.flower-layouts button{font:inherit;color:#333;border:0;background:#fff;padding:.45rem;cursor:pointer}
-.flower-layouts button{background:#edf0f4;min-width:31px;min-height:31px;border-radius:3px}
-.flower-layouts button[aria-pressed="true"]{background:#d9dee6}
+@font-face{font-family:GeneralSans;src:url("/assets/GeneralSans-Medium.woff2") format("woff2");font-style:normal;font-weight:500;font-display:swap}
+.flower-tools{gap:16px}
+.flower-toolbar select{font:500 16px/1.5 GeneralSans,Arial,sans-serif;color:#222;border:0;background:transparent;min-height:34px;padding:3px 4px 3px 0;cursor:pointer;field-sizing:content;max-width:100%}
+.flower-layouts{gap:10px}
+.flower-layouts button{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;padding:0;border:0;border-radius:3px;background:#f2f2f2;color:#222;cursor:pointer}
+.flower-layouts button[aria-pressed="true"],.flower-layouts button:hover{background:#e5e8ee}
+.catalog-layout-icon{display:flex;align-items:center;justify-content:center;gap:2.5px;width:18px;height:18px}
+.catalog-layout-icon i{width:1.5px;height:12.5px;border-radius:1px;background:currentColor}
+.flower-layouts [data-flower-columns="1"] .catalog-layout-icon{rotate:90deg}
 .flower-products #catalog-message:empty{display:none}
 .flower-grid{display:grid;grid-template-columns:repeat(var(--flower-columns,4),minmax(0,1fr));gap:25px 20px}
 .flower-grid .product-card img{display:block;width:100%;aspect-ratio:1;object-fit:cover;background:#f6f6f6}
@@ -46,6 +52,7 @@
   .flower-shell aside details{margin-bottom:14px}
   .flower-shell .category-link{display:inline-block;margin-right:12px}
   .flower-grid{grid-template-columns:repeat(var(--flower-columns,2),minmax(0,1fr));gap:15px 12px}
+  .flower-tools{flex-wrap:wrap}
   .flower-layouts button:nth-child(n+4){display:none}
 }
 .flower-shell-full{grid-template-columns:minmax(0,1fr)}
