@@ -50,7 +50,7 @@ export async function onRequest(context) {
   const breakdown = kind === "products" && String(input?.category ?? "").trim().toLowerCase() === "flower" && input?.subcategory === "breakdowns";
   if (breakdown && input.weightPrices !== undefined) {
     const weights = input.weightPrices;
-    const allowed = ["Ounce", "Quarter Pound", "Half Pound", "Pound"];
+    const allowed = ["3.5g", "Half Ounce", "Ounce", "Quarter Pound", "Half Pound", "Pound"];
     if (!weights || typeof weights !== "object" || Array.isArray(weights) ||
         !Object.keys(weights).length || Object.entries(weights).some(([key, amount]) =>
           !allowed.includes(key) || typeof amount !== "string" || !/^\d{1,9}(\.\d{1,2})?$/.test(amount))) {
@@ -63,13 +63,21 @@ export async function onRequest(context) {
   }
   for (const [field, limit] of Object.entries(fields[kind])) {
     const value = field === "price" && details.price !== undefined ? details.price : input?.[field];
+    if (kind === "products" && field === "stock" && value === "") {
+      details.stock = null;
+      continue;
+    }
+    if (kind === "products" && field === "sku" && value === "") {
+      details.sku = "";
+      continue;
+    }
     if (typeof value !== "string" || !value.trim() || value.length > limit) {
       return json({ error: "Check the " + field + " field." }, 400);
     }
     details[field] = value.trim();
   }
   if (!["active", "inactive"].includes(details.status)) return json({ error: "Choose a valid status." }, 400);
-  if (kind === "products" && (!/^\d{1,9}(\.\d{1,2})?$/.test(details.price) || !/^\d{1,9}$/.test(details.stock))) {
+  if (kind === "products" && (!/^\d{1,9}(\.\d{1,2})?$/.test(details.price) || (details.stock !== null && !/^\d{1,9}$/.test(details.stock)))) {
     return json({ error: "Enter a USD price and a whole-number stock count." }, 400);
   }
   if (kind === "products") {
@@ -111,7 +119,8 @@ export async function onRequest(context) {
   const now = new Date().toISOString();
   if (id) {
     const originalDetails = Object.hasOwn(details, "weightPrices") ? "json_remove(details, '$.weightPrices')" : "details";
-    const updated = await env.DB.prepare("UPDATE admin_records SET details=json_patch(" + originalDetails + ", ?), updated_at=? WHERE id=? AND kind=?")
+    const updatedDetails = details.stock === null ? "json_set(json_patch(" + originalDetails + ", ?), '$.stock', NULL)" : "json_patch(" + originalDetails + ", ?)";
+    const updated = await env.DB.prepare("UPDATE admin_records SET details=" + updatedDetails + ", updated_at=? WHERE id=? AND kind=?")
       .bind(JSON.stringify(details), now, id, kind).run();
     if (!updated.meta.changes) return json({ error: "Record was not found." }, 404);
     return json({ id, videoConversion: await queueProductVideo(env, kind, id) });

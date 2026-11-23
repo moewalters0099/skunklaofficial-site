@@ -15,12 +15,13 @@ function cartLines(available) {
     const [id, weight] = key.split("|");
     const product = available.get(id);
     const amount = weight ? product?.weightPrices?.[weight] : product?.weightPrices ? undefined : product?.price;
-    const stock = amount === undefined ? 0 : Math.max(0, Number(product.stock) - (used.get(id) ?? 0));
+    const stock = amount === undefined ? 0 : Math.max(0, stockUnits(product) - (used.get(id) ?? 0));
     const remaining = Math.min(qty, stock);
     used.set(id, (used.get(id) ?? 0) + remaining);
     return { key, id, weight, qty, product, stock, remaining, unitPrice: Math.round(Number(amount) * 100) };
   });
 }
+const stockUnits = (product) => product.stock === null ? 999999999 : Number(product.stock);
 const make = (tag, value) => {
   const element = document.createElement(tag);
   element.textContent = value;
@@ -67,7 +68,7 @@ function showCatalog(products, grid) {
     if (category && item.category.trim().toLowerCase() !== category) return false;
     if (search && ![item.name, item.sku, item.category].some((value) => value?.toLowerCase().includes(search))) return false;
     if (!filters) return true;
-    if (subcategory && item.subcategory !== subcategory) return false;
+    if (subcategory && item.subcategory !== subcategory && !item.subcategories?.includes(subcategory)) return false;
     const amounts = item.weightPrices ? Object.values(item.weightPrices).map((amount) => Math.round(Number(amount) * 100)) : [cents(item)];
     if (hasConfiguredRanges) {
       if (!configuredRange) return true;
@@ -96,7 +97,12 @@ function showCatalog(products, grid) {
       link.append(photo);
     }
     link.append(make("h2", product.name));
-    card.append(link, make("p", productPrice(product)));
+    const cost = make("p", "");
+    if (Number(product.originalPrice) > Number(product.price)) {
+      cost.append(make("del", currency.format(Number(product.originalPrice))), " ");
+    }
+    cost.append(productPrice(product));
+    card.append(link, cost);
     return card;
   }));
 }
@@ -117,7 +123,7 @@ function renderCart(products, panel) {
   const lines = cartLines(available);
   for (const { key: id, qty, product, weight, remaining, unitPrice } of lines) {
     const reserved = lines.filter((line) => line.product?.id === product?.id).reduce((sum, line) => sum + line.remaining, 0);
-    const stock = remaining ? Number(product.stock) - reserved + remaining : 0;
+    const stock = remaining ? stockUnits(product) - reserved + remaining : 0;
     const name = [product?.name ?? "Unavailable product", weight].filter(Boolean).join(" · ");
     const row = make("article", "");
     row.className = "cart-line";
@@ -443,9 +449,13 @@ async function showProduct(products, root) {
     media.append(gallery);
   }
   if (videoLink) media.append(videoLink);
-  root.querySelector("h1").textContent = [product.name, product.sku].filter(Boolean).join(" · ");
+  root.querySelector("h1").textContent = [product.name, product.sku].filter(Boolean).join(" – ");
   const priceLabel = root.querySelector("[data-price]");
   priceLabel.textContent = productPrice(product);
+  if (Number(product.originalPrice) > Number(product.price)) {
+    priceLabel.prepend(make("del", currency.format(Number(product.originalPrice))), " ");
+  }
+  if (product.cashPrice) priceLabel.after(make("p", product.cashPrice));
   root.querySelector("[data-category-name]").textContent = [product.category, product.subcategory?.replaceAll("-", " ")].filter(Boolean).join(" / ");
   if (product.description) {
     root.querySelector("[data-description]").textContent = product.description;
@@ -459,7 +469,7 @@ async function showProduct(products, root) {
     weightSelect = document.createElement("select");
     weightSelect.required = true;
     weightSelect.add(new Option("Choose a weight", ""));
-    for (const weight of ["Ounce", "Quarter Pound", "Half Pound", "Pound"]) {
+    for (const weight of ["3.5g", "Half Ounce", "Ounce", "Quarter Pound", "Half Pound", "Pound"]) {
       const amount = product.weightPrices[weight];
       if (amount !== undefined) weightSelect.add(new Option(weight + " · " + currency.format(Number(amount)), weight));
     }
@@ -469,7 +479,7 @@ async function showProduct(products, root) {
     label.append(weightSelect);
     form.prepend(label);
   }
-  const stock = Number(product.stock);
+  const stock = stockUnits(product);
   quantity.max = String(stock);
   if (stock < 1) {
     form.hidden = true;

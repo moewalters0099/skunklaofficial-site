@@ -42,7 +42,7 @@ export async function onRequestPost({ request, env }) {
   }
   if (items.some((item) => !item || typeof item.id !== "string" || !uuid.test(item.id) ||
       !Number.isSafeInteger(item.qty) || item.qty < 1 ||
-      (item.weight !== undefined && !["Ounce", "Quarter Pound", "Half Pound", "Pound"].includes(item.weight))) ||
+      (item.weight !== undefined && !["3.5g", "Half Ounce", "Ounce", "Quarter Pound", "Half Pound", "Pound"].includes(item.weight))) ||
       new Set(items.map((item) => item.id + "|" + (item.weight ?? ""))).size !== items.length) {
     return json({ error: "One or more cart items are invalid." }, 400);
   }
@@ -73,7 +73,7 @@ export async function onRequestPost({ request, env }) {
   for (const item of items) {
     const product = products.get(item.id);
     const quantity = (quantities.get(item.id) ?? 0) + item.qty;
-    if (!product || quantity > Number(product.stock)) return json({ error: "Stock changed. Refresh your cart and check the quantities." }, 409);
+    if (!product || quantity > Number(product.stock === null ? 999999999 : product.stock)) return json({ error: "Stock changed. Refresh your cart and check the quantities." }, 409);
     quantities.set(item.id, quantity);
     const amount = product.weightPrices ? product.weightPrices[item.weight] : item.weight ? undefined : product.price;
     if (amount === undefined) return json({ error: "A weight option changed. Refresh your cart and choose an available weight." }, 409);

@@ -86,7 +86,8 @@
       input.id = label.htmlFor;
       input.name = key;
       input.maxLength = maxLength;
-      input.required = inputMode !== "url";
+      input.required = inputMode !== "url" && key !== "stock" && key !== "sku";
+      if (key === "stock") input.placeholder = "Blank if quantity is not tracked";
       if (inputMode === "url") {
         input.type = "url";
         input.placeholder = "Direct HTTPS link";
@@ -123,7 +124,7 @@
       weights.append(node("legend", "Price by weight (USD)"));
       weights.append(node("p", "Enter a price for each weight you offer. Leave unavailable weights blank."));
       const basePrice = fields.querySelector('[name="price"]');
-      for (const weight of ["Ounce", "Quarter Pound", "Half Pound", "Pound"]) {
+      for (const weight of ["3.5g", "Half Ounce", "Ounce", "Quarter Pound", "Half Pound", "Pound"]) {
         const input = document.createElement("input");
         input.name = "weight:" + weight;
         input.id = "weight-" + weight.replaceAll(" ", "-");
@@ -211,7 +212,7 @@
       const high = Math.max(low, ...Object.values(record.weightPrices ?? {}).map(Number));
       const price = currency.format(low) + (high > low ? " – " + currency.format(high) : "");
       row.append(product, node("td", record.category), node("td", price),
-        node("td", record.stock), node("td", record.status), actions);
+        node("td", record.stock ?? "Untracked"), node("td", record.status), actions);
       return row;
     });
     list.replaceChildren(...rows);
