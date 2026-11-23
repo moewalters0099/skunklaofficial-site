@@ -101,25 +101,25 @@ function showCatalog(products, grid) {
       if (sort.value === "name") return alphabetical(a, b);
       return (rank.get(a.id) ?? Infinity) - (rank.get(b.id) ?? Infinity) || alphabetical(a, b);
     });
-    const pageCount = Math.max(1, Math.ceil(listings.length / 12));
+    const batchSize = 12;
     const requested = Number(query.get("page"));
-    const page = Number.isInteger(requested) ? Math.min(pageCount, Math.max(1, requested)) : 1;
-    matches = listings.slice((page - 1) * 12, page * 12);
-    count.textContent = listings.length
-      ? "Showing " + (page === 1 ? matches.length : ((page - 1) * 12 + 1) + "–" + ((page - 1) * 12 + matches.length)) + " of " + listings.length + " results"
-      : "Showing 0 results";
-    const pages = document.querySelector(".flower-pages");
-    pages.hidden = pageCount < 2;
-    for (let index = 1; index <= pageCount; index++) {
-      const link = make("a", String(index));
-      const next = new URLSearchParams(query);
-      if (index > 1) next.set("page", index);
-      else next.delete("page");
-      link.href = location.pathname + (next.size ? "?" + next : "") + "#catalog";
-      link.setAttribute("aria-label", "Page " + index);
-      if (page === index) link.setAttribute("aria-current", "page");
-      pages.append(link);
+    const initial = Number.isSafeInteger(requested) && requested > 1 ? requested * batchSize : batchSize;
+    matches = listings.slice(0, initial);
+    let visible = matches.length;
+    const more = document.querySelector("[data-load-more]");
+    function updateCount() {
+      count.textContent = visible ? "Showing " + visible + " of " + listings.length + " results" : "Showing 0 results";
+      more.hidden = visible >= listings.length;
     }
+    updateCount();
+    more.onclick = () => {
+      const next = listings.slice(visible, visible + batchSize).map(renderCard);
+      if (!next.length) return;
+      grid.append(...next);
+      visible += next.length;
+      if (document.activeElement === more) next[0].querySelector("a")?.focus({ preventScroll: true });
+      updateCount();
+    };
     sort.onchange = () => {
       query.delete("page");
       if (sort.value) query.set("sort", sort.value);
@@ -139,7 +139,7 @@ function showCatalog(products, grid) {
   }
   const message = document.querySelector("#catalog-message");
   message.textContent = matches.length ? "" : "No products match this selection.";
-  grid.replaceChildren(...matches.map((product) => {
+  function renderCard(product) {
     const card = make("article", "");
     card.className = "product-card";
     const link = make("a", "");
@@ -176,7 +176,8 @@ function showCatalog(products, grid) {
     const actions = window.storeProductActions?.controls(product);
     if (actions) card.append(actions);
     return card;
-  }));
+  }
+  grid.replaceChildren(...matches.map(renderCard));
 }
 
 const shipping = [

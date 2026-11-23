@@ -37,9 +37,10 @@
 .flower-grid .product-card p:has(del){color:#a02c39}
 .flower-badge{position:absolute;top:9px;left:9px;border-radius:20px;background:#a02c39;color:#fff;padding:5px 8px;font-size:.72rem;font-weight:bold;text-transform:uppercase}
 .flower-badge.is-new{background:#4957a2}
-.flower-pages{text-align:center;margin-top:28px}
-.flower-pages a{display:inline-grid;place-items:center;min-width:35px;min-height:35px;margin:3px;border:1px solid #e1e1e1;border-radius:4px}
-.flower-pages a[aria-current]{background:#232323;color:white}
+.catalog-load-more{text-align:center}
+.catalog-load-more button{margin-top:32px;min-height:48px;padding:0 35px;border:0;border-radius:999px;background:#282828;color:#fff;cursor:pointer;font:500 16px/1.2 GeneralSans,Arial,sans-serif;text-transform:uppercase}
+.catalog-load-more button:hover{background:#111}
+.catalog-load-more button:focus-visible{outline:2px solid #217284;outline-offset:3px}
 .flower-footer{text-align:center;background:#252525;color:white;padding:22px}
 @media(max-width:800px){
   .flower-catalog .store-search{display:flex;max-width:none;margin:0}
