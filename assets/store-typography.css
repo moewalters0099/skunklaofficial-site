@@ -32,3 +32,21 @@ h1,h2,h3,h4,strong{font-weight:600}
   .flower-grid .product-card h2,.store-product-card h3{font-size:14px}
 }
 @media(max-width:767px){.store-section-head h2{font-size:24px}}
+
+@media(max-width:600px){
+  .store-head{gap:4px;padding-inline:10px}
+  .store-head .store-logo img{width:clamp(92px,25vw,132px)}
+  .store-head [data-menu-open],.store-head .store-mobile-search{display:grid;place-items:center;flex:none;width:36px;height:44px;padding:0}
+  .store-mobile-search span{display:block;width:13px;height:13px;border:1.6px solid currentColor;border-radius:50%;position:relative}
+  .store-mobile-search span::after{content:"";width:6px;height:1.6px;background:currentColor;position:absolute;right:-5px;bottom:-2px;rotate:45deg}
+  .store-actions{gap:2px}
+  .store-actions .product-action-bar-header{gap:0}
+  .store-actions .product-action-bar-header button{width:34px;height:44px}
+  .store-actions a[aria-label="Shopping cart"]{display:inline-flex;align-items:center;gap:3px;min-height:44px}
+  .store-head .store-search input,.store-head .store-search select,
+  .checkout-card input,.checkout-card select,.checkout-card textarea,.cart-summary select,.cart-summary textarea{font-size:16px}
+  .store-head .store-search select{max-width:34%}
+  .product-action-dialog,.cart-drawer{box-sizing:border-box}
+  .store-product-card h3,.flower-grid .product-card h2,.checkout-card h1{overflow-wrap:anywhere}
+  .store-bottom a,.store-bottom button{min-height:44px}
+}
