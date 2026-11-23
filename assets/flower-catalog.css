@@ -81,3 +81,47 @@
 @media(prefers-reduced-motion:reduce){
   [data-toolbar-hint]::before,[data-toolbar-hint]::after{transition:none}
 }
+
+.category-cart-action {
+  width: 100%;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.flower-grid .category-cart-action :is(a, button) {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: #f1f1f1;
+  color: #111;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.flower-grid .category-cart-action :is(a, button):is(:hover, :focus-visible) {
+  background: #111;
+  color: #fff;
+  text-decoration: none;
+}
+
+.category-cart-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+@media (hover: hover) {
+  .product-card:not(:hover):not(:focus-within) .category-cart-action {
+    opacity: 0;
+    pointer-events: none;
+  }
+}

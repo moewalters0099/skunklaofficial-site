@@ -90,6 +90,8 @@ function showCatalog(products, grid) {
   let matches = grid.hasAttribute("data-featured") ? listings.slice(0, 6) : listings;
   const count = document.querySelector(".catalog-count");
   const phone = grid.hasAttribute("data-mobile-shop") && matchMedia("(max-width: 600px)");
+  const showCartAction = phone && categoryPage;
+  if (showCartAction) updateCartCounts();
   const newProducts = new Set((grid.dataset.flowerNew ?? "").split(" "));
   const rank = new Map((grid.dataset.flowerOrder ?? "").split(" ").map((id, index) => [id, index]));
   if (categoryPage) {
@@ -189,9 +191,7 @@ function showCatalog(products, grid) {
       link.href = "/catalog" + (params.size ? "?" + params : "");
       if (value === (requestedCategory || "")) link.setAttribute("aria-current", "page");
     }
-    for (const badge of document.querySelectorAll("[data-mobile-cart-count]")) {
-      badge.textContent = [...cart.values()].reduce((total, quantity) => total + quantity, 0);
-    }
+    updateCartCounts();
     for (const button of columns) {
       button.onclick = () => {
         grid.dataset.shopColumns = button.dataset.shopColumns;
@@ -239,6 +239,55 @@ function showCatalog(products, grid) {
     });
     if (phone.matches) renderPhone();
   }
+  function updateCartCounts() {
+    const total = [...cart.values()].reduce((sum, quantity) => sum + quantity, 0);
+    for (const badge of document.querySelectorAll("[data-mobile-cart-count], .store-cart-count")) {
+      badge.textContent = total;
+    }
+  }
+
+  function renderCartAction(product, href) {
+    const action = make("div", "");
+    action.className = "category-cart-action";
+    const soldOut = stockUnits(product) <= 0;
+    if (soldOut || Object.keys(product.weightPrices ?? {}).length) {
+      const options = make("a", soldOut ? "View product" : "Select options");
+      options.href = href;
+      action.append(options);
+      return action;
+    }
+
+    const button = make("button", "Add to cart");
+    button.type = "button";
+    button.setAttribute("aria-label", "Add " + product.name + " to cart");
+    const status = make("span", "");
+    status.className = "category-cart-status";
+    status.setAttribute("role", "status");
+    button.onclick = () => {
+      const previous = cart.get(product.id) ?? 0;
+      if (previous >= stockUnits(product)) {
+        button.textContent = "Stock limit reached";
+        status.textContent = "Stock limit reached for " + product.name;
+        return;
+      }
+      cart.set(product.id, previous + 1);
+      try {
+        saveCart();
+      } catch {
+        if (previous) cart.set(product.id, previous);
+        else cart.delete(product.id);
+        button.textContent = "Try again";
+        status.textContent = "Could not update your cart.";
+        return;
+      }
+      updateCartCounts();
+      button.textContent = "Added to cart";
+      status.textContent = product.name + " added to cart";
+    };
+    action.append(button, status);
+    return action;
+  }
+
   function renderCard(product) {
     const card = make("article", "");
     card.className = "product-card";
@@ -275,6 +324,7 @@ function showCatalog(products, grid) {
     card.append(link, cost);
     const actions = window.storeProductActions?.controls(product);
     if (actions) card.append(actions);
+    if (showCartAction) card.append(renderCartAction(product, link.href));
     return card;
   }
   if (phone) configurePhoneShop();
