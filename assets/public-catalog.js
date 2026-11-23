@@ -49,7 +49,7 @@ function showCatalog(products, grid) {
   const search = (new URLSearchParams(location.search).get("q") ?? "").trim().toLowerCase();
   const filters = document.querySelector("[data-catalog-filters]");
   const query = new URLSearchParams(location.search);
-  const flowerPage = grid.hasAttribute("data-flower-order");
+  const categoryPage = grid.hasAttribute("data-flower-order");
   const subcategory = query.get("subcategory") || "";
   const bracket = query.get("price") || "";
   const lower = Number(bracket);
@@ -62,7 +62,7 @@ function showCatalog(products, grid) {
       const next = new URLSearchParams(query);
       if (value) next.set(filter, value);
       else next.delete(filter);
-      if (flowerPage) next.delete("page");
+      if (categoryPage) next.delete("page");
       link.href = location.pathname + (next.size ? "?" + next : "");
       if ((query.get(filter) || "") === value) link.setAttribute("aria-current", "true");
     }
@@ -89,7 +89,7 @@ function showCatalog(products, grid) {
   let matches = grid.hasAttribute("data-featured") ? listings.slice(0, 6) : listings;
   const count = document.querySelector(".catalog-count");
   const newProducts = new Set((grid.dataset.flowerNew ?? "").split(" "));
-  if (flowerPage) {
+  if (categoryPage) {
     const rank = new Map(grid.dataset.flowerOrder.split(" ").map((id, index) => [id, index]));
     const sort = document.querySelector("#flower-sort");
     sort.value = query.get("sort") ?? "";
@@ -152,7 +152,7 @@ function showCatalog(products, grid) {
       photo.loading = "lazy";
       link.append(photo);
     }
-    if (flowerPage) {
+    if (categoryPage) {
       const discounted = Number(product.originalPrice) > Number(product.price);
       const badge = product.stock === "0" || product.stock === 0 ? "Sold out"
         : discounted ? "−" + Math.round((1 - Number(product.price) / Number(product.originalPrice)) * 100) + "%"
@@ -166,7 +166,7 @@ function showCatalog(products, grid) {
       label.className = "flower-product-category";
       link.append(label);
     }
-    link.append(make("h2", flowerPage ? (product.displayName || [product.name, product.sku].filter(Boolean).join(" – ")) : product.name));
+    link.append(make("h2", categoryPage ? (product.displayName || [product.name, product.sku].filter(Boolean).join(" – ")) : product.name));
     const cost = make("p", "");
     if (Number(product.originalPrice) > Number(product.price)) {
       cost.append(make("del", currency.format(Number(product.originalPrice))), " ");

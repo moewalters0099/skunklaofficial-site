@@ -48,3 +48,4 @@
   .flower-grid{grid-template-columns:repeat(var(--flower-columns,2),minmax(0,1fr));gap:15px 12px}
   .flower-layouts button:nth-child(n+4){display:none}
 }
+.flower-shell-full{grid-template-columns:minmax(0,1fr)}
