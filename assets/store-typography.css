@@ -1,0 +1,34 @@
+@font-face{font-family:GeneralSans;src:url("/assets/GeneralSans-Regular.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:GeneralSans;src:url("/assets/GeneralSans-Medium.woff2") format("woff2");font-style:normal;font-weight:500;font-display:swap}
+@font-face{font-family:GeneralSans;src:url("/assets/GeneralSans-Semibold.woff2") format("woff2");font-style:normal;font-weight:600;font-display:swap}
+body,.product-body,.cart-drawer{font:500 16px/28px GeneralSans,Arial,sans-serif}
+h1,h2,h3,h4,strong{font-weight:600}
+.store-head input,.store-head select,.checkout-card input,.checkout-card select,.checkout-card textarea{font:400 15px/1.4 GeneralSans,Arial,sans-serif}
+.store-announcement{background:#000;font-size:14px;line-height:1.2;min-height:72px}
+.store-announcement strong{letter-spacing:.4px}
+.store-announcement nav{gap:26px}
+.store-announcement nav a{display:inline-flex;align-items:center;gap:8px;font-weight:600;white-space:nowrap}
+.store-announcement nav img{display:block;width:auto;height:28px;filter:invert(1)}
+.store-chips a{font-size:14px}
+.store-section-head h2{font-size:36px;font-weight:600;line-height:1.36;letter-spacing:normal}
+.store-section-head a,.store-section-head button{font-size:14px}
+.store-tiles a{font-size:16px;font-weight:600;line-height:22px}
+.flower-main h1{font-size:36px;font-weight:600;line-height:1.2}
+.flower-breadcrumb{font-size:14px}
+.flower-toolbar .catalog-count{font-size:18px}
+.flower-grid .product-card h2,.store-product-card h3{font-size:16px;font-weight:600;line-height:1.3}
+.flower-product-category,.store-card-category{font-size:12px}
+.flower-grid .product-card p,.store-card-price{font-size:16px}
+.catalog-load-more button,.product-actions button,.checkout-card .cart-link{font:600 14px/1.2 GeneralSans,Arial,sans-serif;letter-spacing:0;text-transform:uppercase}
+.store-benefit strong{font-weight:800}
+.store-notices p:last-child{font-weight:400}
+@media(max-width:991px){
+  .store-announcement nav{gap:14px}
+}
+@media(max-width:800px){
+  .store-announcement{font-size:12px}
+  .store-announcement nav{flex-wrap:wrap}
+  .flower-toolbar .catalog-count{font-size:14px}
+  .flower-grid .product-card h2,.store-product-card h3{font-size:14px}
+}
+@media(max-width:767px){.store-section-head h2{font-size:24px}}
