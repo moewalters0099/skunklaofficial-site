@@ -1,0 +1,325 @@
+.shop-phone-only {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  body:has([data-mobile-shop]) > .site-header,
+  .catalog-main > :is(.catalog-top, .catalog-breadcrumb, .category-quicklinks),
+  .catalog-main :is(.catalog-toolbar, .product-action-bar),
+  [data-mobile-shop] .product-card-actions,
+  #catalog-message:empty {
+    display: none;
+  }
+
+  .shop-phone-header,
+  .shop-phone-bottom {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    color: #111;
+  }
+
+  .shop-phone-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    min-height: 58px;
+    padding: 0 15px;
+    gap: 10px;
+    box-shadow: 0 3px 16px #0001;
+  }
+
+  .shop-phone-brand {
+    margin-inline-end: auto;
+  }
+
+  .shop-phone-brand img {
+    display: block;
+    width: min(37vw, 150px);
+    height: auto;
+  }
+
+  .shop-phone-header :is(button, a:not(.shop-phone-brand)),
+  .shop-phone-bottom > :is(button, a) {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-width: 40px;
+    min-height: 44px;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    background: transparent;
+    font: inherit;
+    text-decoration: none;
+  }
+
+  .shop-phone-header svg,
+  .shop-phone-bottom svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .shop-phone-bottom {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 20;
+    padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 -3px 16px #0001;
+  }
+
+  .shop-phone-bottom > :is(button, a) {
+    flex: 1;
+    min-height: 55px;
+    border-right: 1px solid #ececec;
+  }
+
+  .shop-phone-only .store-mobile-count {
+    position: absolute;
+    top: 5px;
+    left: calc(50% + 2px);
+    display: grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 3px;
+    border-radius: 99px;
+    background: #df2828;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .catalog-main {
+    padding: 22px 15px 85px;
+  }
+
+  .shop-phone-intro {
+    display: block;
+  }
+
+  .shop-phone-intro nav {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 14px;
+  }
+
+  .shop-phone-intro nav a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .shop-phone-intro h1 {
+    margin: 40px 0 64px;
+    text-align: center;
+    font-size: 24px;
+    letter-spacing: normal;
+  }
+
+  .shop-phone-count {
+    margin: 0 0 13px;
+    color: #666;
+    font-size: 14px;
+  }
+
+  .shop-phone-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .shop-phone-toolbar select {
+    max-width: min(56vw, 190px);
+    color: #111;
+    background: #fff;
+    border: 0;
+    min-height: 40px;
+    font: inherit;
+  }
+
+  .shop-phone-toolbar button,
+  .shop-phone-tab {
+    border: 0;
+    background: #f1f1f1;
+    color: #111;
+    font: inherit;
+  }
+
+  .shop-phone-toolbar button {
+    min-width: 40px;
+    min-height: 40px;
+    border-radius: 5px;
+  }
+
+  .shop-phone-toolbar button[aria-pressed="true"] {
+    background: #e7e7e7;
+  }
+
+  .catalog-main .catalog-shell {
+    margin-top: 26px;
+  }
+
+  [data-mobile-shop] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px 16px;
+  }
+
+  [data-mobile-shop][data-shop-columns="1"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  [data-mobile-shop] .product-card {
+    position: relative;
+    padding: 0;
+    border: 0;
+    gap: 6px;
+  }
+
+  [data-mobile-shop] .product-card-link {
+    display: block;
+    width: 100%;
+  }
+
+  [data-mobile-shop] img {
+    border-radius: 0;
+    background: #fff;
+  }
+
+  [data-mobile-shop] h2 {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 14px;
+    line-height: 1.35;
+    text-transform: uppercase;
+  }
+
+  [data-mobile-shop] .flower-product-category {
+    display: block;
+    margin: 13px 0 5px;
+    color: #666;
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+
+  [data-mobile-shop] .flower-badge {
+    position: absolute;
+    top: 10px;
+    left: 9px;
+    padding: 5px 9px;
+    border-radius: 30px;
+    background: #db2525;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  [data-mobile-shop] .flower-badge.is-new {
+    background: #67529e;
+  }
+
+  [data-mobile-shop] .product-card p {
+    color: #087c98;
+    font-size: 15px;
+  }
+
+  [data-mobile-shop] .product-card p:has(del) {
+    color: #c71c23;
+  }
+
+  [data-mobile-shop] del {
+    color: #666;
+  }
+
+  .shop-phone-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+  }
+
+  .shop-phone-pagination button {
+    min-height: 46px;
+    padding: 0 27px;
+    border: 0;
+    border-radius: 40px;
+    background: #171717;
+    color: white;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .shop-phone-tab {
+    display: block;
+    position: fixed;
+    inset: 50% auto auto 0;
+    z-index: 19;
+    transform: translateY(-50%) rotate(180deg);
+    writing-mode: vertical-rl;
+    padding: 14px 7px;
+    border-radius: 4px 0 0 4px;
+    box-shadow: 0 1px 8px #0002;
+  }
+
+  .shop-phone-dialog[open] {
+    display: block;
+    inset: 0 auto 0 0;
+    box-sizing: border-box;
+    width: min(86vw, 320px);
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 18px;
+    border: 0;
+    background: #fff;
+    color: #111;
+  }
+
+  .shop-phone-dialog::backdrop {
+    background: #0007;
+  }
+
+  .shop-phone-dialog form {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .shop-phone-dialog button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .shop-phone-dialog ul {
+    padding: 0;
+    list-style: none;
+  }
+
+  .shop-phone-dialog li a {
+    display: block;
+    padding: 11px 8px;
+    border-bottom: 1px solid #eee;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .shop-phone-dialog a[aria-current] {
+    background: #f1f1f1;
+    font-weight: 700;
+  }
+
+  .shop-phone-dialog input {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+  }
+
+  body:has([data-mobile-shop]) > .store-footer {
+    padding-bottom: calc(55px + env(safe-area-inset-bottom));
+  }
+}

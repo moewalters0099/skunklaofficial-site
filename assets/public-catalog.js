@@ -88,6 +88,7 @@ function showCatalog(products, grid) {
   if (category === "wax") listings.sort((a, b) => a.name.localeCompare(b.name));
   let matches = grid.hasAttribute("data-featured") ? listings.slice(0, 6) : listings;
   const count = document.querySelector(".catalog-count");
+  const phone = grid.hasAttribute("data-mobile-shop") && matchMedia("(max-width: 600px)");
   const newProducts = new Set((grid.dataset.flowerNew ?? "").split(" "));
   if (categoryPage) {
     const rank = new Map(grid.dataset.flowerOrder.split(" ").map((id, index) => [id, index]));
@@ -139,6 +140,70 @@ function showCatalog(products, grid) {
   }
   const message = document.querySelector("#catalog-message");
   message.textContent = matches.length ? "" : "No products match this selection.";
+  function configurePhoneShop() {
+    const pageSize = 12;
+    const more = document.querySelector("[data-shop-more]");
+    const phoneCount = document.querySelector(".shop-phone-count");
+    const sort = document.querySelector("[data-shop-sort]");
+    const columns = [...document.querySelectorAll("[data-shop-columns]")];
+    let ordered = [];
+    let visible = 0;
+
+    function updateCount() {
+      phoneCount.textContent = visible ? `Showing ${visible} of ${ordered.length} results` : "Showing 0 results";
+      more.hidden = visible >= ordered.length;
+    }
+
+    function renderPhone() {
+      const alphabetical = (a, b) => a.name.localeCompare(b.name);
+      ordered = [...listings].sort((a, b) => {
+        if (sort.value === "price-asc") return cents(a) - cents(b) || alphabetical(a, b);
+        if (sort.value === "price-desc") return cents(b) - cents(a) || alphabetical(a, b);
+        return alphabetical(a, b);
+      });
+      visible = Math.min(pageSize, ordered.length);
+      grid.replaceChildren(...ordered.slice(0, visible).map(renderCard));
+      updateCount();
+    }
+
+    for (const trigger of document.querySelectorAll("[data-shop-open]")) {
+      trigger.onclick = () => document.getElementById(trigger.dataset.shopOpen).showModal();
+    }
+    for (const link of document.querySelectorAll("[data-shop-category]")) {
+      const params = new URLSearchParams(query);
+      const value = link.dataset.shopCategory;
+      params.delete("page");
+      if (value) params.set("category", value);
+      else params.delete("category");
+      link.href = "/catalog" + (params.size ? "?" + params : "");
+      if (value === (requestedCategory || "")) link.setAttribute("aria-current", "page");
+    }
+    for (const badge of document.querySelectorAll("[data-mobile-cart-count]")) {
+      badge.textContent = [...cart.values()].reduce((total, quantity) => total + quantity, 0);
+    }
+    for (const button of columns) {
+      button.onclick = () => {
+        grid.dataset.shopColumns = button.dataset.shopColumns;
+        for (const peer of columns) peer.setAttribute("aria-pressed", String(peer === button));
+      };
+    }
+    more.onclick = () => {
+      const next = ordered.slice(visible, visible + pageSize).map(renderCard);
+      grid.append(...next);
+      visible += next.length;
+      if (document.activeElement === more) next[0]?.querySelector("a")?.focus({ preventScroll: true });
+      updateCount();
+    };
+    sort.onchange = renderPhone;
+    phone.addEventListener("change", () => {
+      if (phone.matches) renderPhone();
+      else {
+        for (const dialog of document.querySelectorAll(".shop-phone-dialog[open]")) dialog.close();
+        grid.replaceChildren(...matches.map(renderCard));
+      }
+    });
+    if (phone.matches) renderPhone();
+  }
   function renderCard(product) {
     const card = make("article", "");
     card.className = "product-card";
@@ -152,7 +217,7 @@ function showCatalog(products, grid) {
       photo.loading = "lazy";
       link.append(photo);
     }
-    if (categoryPage) {
+    if (categoryPage || phone?.matches) {
       const discounted = Number(product.originalPrice) > Number(product.price);
       const badge = product.stock === "0" || product.stock === 0 ? "Sold out"
         : discounted ? "−" + Math.round((1 - Number(product.price) / Number(product.originalPrice)) * 100) + "%"
@@ -177,7 +242,8 @@ function showCatalog(products, grid) {
     if (actions) card.append(actions);
     return card;
   }
-  grid.replaceChildren(...matches.map(renderCard));
+  if (phone) configurePhoneShop();
+  if (!phone?.matches) grid.replaceChildren(...matches.map(renderCard));
 }
 
 const shipping = [
