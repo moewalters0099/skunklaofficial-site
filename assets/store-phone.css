@@ -68,8 +68,31 @@
 }
 
 @media (max-width: 600px) {
-  .store-collection :is(.store-announcement, .store-chip-carousel) {
+  .store-collection .store-chip-carousel,
+  .store-collection .store-announcement > :is(span, strong) {
     display: none;
+  }
+
+  .store-collection .store-announcement {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 72px;
+    padding: 12px 10px;
+  }
+
+  .store-collection .store-announcement nav {
+    justify-content: center;
+    gap: clamp(8px, 3.5vw, 15px);
+    border: 0;
+    padding: 0;
+    font-size: clamp(11px, 3.6vw, 14px);
+  }
+
+  .store-collection .store-announcement nav a {
+    gap: clamp(4px, 2vw, 8px);
+  }
+
+  .store-collection .store-announcement nav img {
+    height: clamp(22px, 7.2vw, 28px);
   }
 
   .store-collection .store-head {
