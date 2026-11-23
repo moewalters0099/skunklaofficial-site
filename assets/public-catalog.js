@@ -49,6 +49,7 @@ function showCatalog(products, grid) {
   const search = (new URLSearchParams(location.search).get("q") ?? "").trim().toLowerCase();
   const filters = document.querySelector("[data-catalog-filters]");
   const query = new URLSearchParams(location.search);
+  const flowerPage = grid.hasAttribute("data-flower-order");
   const subcategory = query.get("subcategory") || "";
   const bracket = query.get("price") || "";
   const lower = Number(bracket);
@@ -61,6 +62,7 @@ function showCatalog(products, grid) {
       const next = new URLSearchParams(query);
       if (value) next.set(filter, value);
       else next.delete(filter);
+      if (flowerPage) next.delete("page");
       link.href = location.pathname + (next.size ? "?" + next : "");
       if ((query.get(filter) || "") === value) link.setAttribute("aria-current", "true");
     }
@@ -84,8 +86,57 @@ function showCatalog(products, grid) {
     return !bracket || amounts.some((amount) => amount >= lower * 100 && (lower === 1600 ? amount <= 200000 : amount < (lower + 400) * 100));
   });
   if (category === "wax") listings.sort((a, b) => a.name.localeCompare(b.name));
-  const matches = grid.hasAttribute("data-featured") ? listings.slice(0, 6) : listings;
-  document.querySelector(".catalog-count").textContent = matches.length + (matches.length === 1 ? " item listed" : " items listed");
+  let matches = grid.hasAttribute("data-featured") ? listings.slice(0, 6) : listings;
+  const count = document.querySelector(".catalog-count");
+  const newProducts = new Set((grid.dataset.flowerNew ?? "").split(" "));
+  if (flowerPage) {
+    const rank = new Map(grid.dataset.flowerOrder.split(" ").map((id, index) => [id, index]));
+    const sort = document.querySelector("#flower-sort");
+    sort.value = query.get("sort") ?? "";
+    if (sort.selectedIndex < 0) sort.value = "";
+    const alphabetical = (a, b) => a.name.localeCompare(b.name);
+    listings.sort((a, b) => {
+      if (sort.value === "price-asc") return cents(a) - cents(b) || alphabetical(a, b);
+      if (sort.value === "price-desc") return cents(b) - cents(a) || alphabetical(a, b);
+      if (sort.value === "name") return alphabetical(a, b);
+      return (rank.get(a.id) ?? Infinity) - (rank.get(b.id) ?? Infinity) || alphabetical(a, b);
+    });
+    const pageCount = Math.max(1, Math.ceil(listings.length / 12));
+    const requested = Number(query.get("page"));
+    const page = Number.isInteger(requested) ? Math.min(pageCount, Math.max(1, requested)) : 1;
+    matches = listings.slice((page - 1) * 12, page * 12);
+    count.textContent = listings.length
+      ? "Showing " + (page === 1 ? matches.length : ((page - 1) * 12 + 1) + "–" + ((page - 1) * 12 + matches.length)) + " of " + listings.length + " results"
+      : "Showing 0 results";
+    const pages = document.querySelector(".flower-pages");
+    pages.hidden = pageCount < 2;
+    for (let index = 1; index <= pageCount; index++) {
+      const link = make("a", String(index));
+      const next = new URLSearchParams(query);
+      if (index > 1) next.set("page", index);
+      else next.delete("page");
+      link.href = location.pathname + (next.size ? "?" + next : "") + "#catalog";
+      link.setAttribute("aria-label", "Page " + index);
+      if (page === index) link.setAttribute("aria-current", "page");
+      pages.append(link);
+    }
+    sort.onchange = () => {
+      query.delete("page");
+      if (sort.value) query.set("sort", sort.value);
+      else query.delete("sort");
+      location.assign(location.pathname + (query.size ? "?" + query : ""));
+    };
+    for (const button of document.querySelectorAll("[data-flower-columns]")) {
+      button.onclick = () => {
+        grid.style.setProperty("--flower-columns", button.dataset.flowerColumns);
+        for (const peer of document.querySelectorAll("[data-flower-columns]")) {
+          peer.setAttribute("aria-pressed", String(peer === button));
+        }
+      };
+    }
+  } else {
+    count.textContent = matches.length + (matches.length === 1 ? " item listed" : " items listed");
+  }
   const message = document.querySelector("#catalog-message");
   message.textContent = matches.length ? "" : "No products match this selection.";
   grid.replaceChildren(...matches.map((product) => {
@@ -101,7 +152,21 @@ function showCatalog(products, grid) {
       photo.loading = "lazy";
       link.append(photo);
     }
-    link.append(make("h2", product.name));
+    if (flowerPage) {
+      const discounted = Number(product.originalPrice) > Number(product.price);
+      const badge = product.stock === "0" || product.stock === 0 ? "Sold out"
+        : discounted ? "−" + Math.round((1 - Number(product.price) / Number(product.originalPrice)) * 100) + "%"
+        : newProducts.has(product.id) ? "New" : "";
+      if (badge) {
+        const label = make("span", badge);
+        label.className = "flower-badge" + (badge === "New" ? " is-new" : "");
+        link.append(label);
+      }
+      const label = make("span", (product.subcategory || product.category).replaceAll("-", " "));
+      label.className = "flower-product-category";
+      link.append(label);
+    }
+    link.append(make("h2", flowerPage ? (product.displayName || [product.name, product.sku].filter(Boolean).join(" – ")) : product.name));
     const cost = make("p", "");
     if (Number(product.originalPrice) > Number(product.price)) {
       cost.append(make("del", currency.format(Number(product.originalPrice))), " ");
