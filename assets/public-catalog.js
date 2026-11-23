@@ -333,14 +333,8 @@ function showCatalog(products, grid) {
     if (showCartAction && phone.matches) {
       card.append(renderCartAction(product, link.href));
       const photo = link.querySelector("img");
-      let photoPointerType;
-      photo?.addEventListener("pointerup", (event) => {
-        photoPointerType = event.pointerType;
-      });
       photo?.addEventListener("click", (event) => {
-        const pointerType = event.pointerType || photoPointerType;
-        photoPointerType = undefined;
-        if (pointerType !== "touch" || event.metaKey || event.ctrlKey ||
+        if (event.defaultPrevented || event.metaKey || event.ctrlKey ||
             event.shiftKey || event.altKey || card.classList.contains("is-cart-open")) return;
         event.preventDefault();
         card.classList.add("is-cart-open");
