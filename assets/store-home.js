@@ -17,99 +17,101 @@
       document.querySelector("[data-search-open]").focus();
     }
   });
-  const slides = [...document.querySelectorAll("#store-slide > a")];
-  const controls = [...document.querySelectorAll(".store-slide-controls button[aria-pressed]")];
-  let activeSlide = 0;
-  function showSlide(index) {
-    activeSlide = (index + slides.length) % slides.length;
-    slides.forEach((slide, position) => { slide.hidden = position !== activeSlide; });
-    controls.forEach((control, position) => control.setAttribute("aria-pressed", String(position === activeSlide)));
-  }
-  controls.forEach((button, index) => { button.onclick = () => showSlide(index); });
-  for (const button of document.querySelectorAll("[data-slide-step]")) {
-    button.onclick = () => showSlide(activeSlide + Number(button.dataset.slideStep));
-  }
-
-  const categoryStrip = document.querySelector(".store-chips");
-  const banner = document.querySelector(".store-feature");
-  const categoryCarousel = document.querySelector(".store-chip-carousel");
-  const motion = document.querySelector("[data-store-motion]");
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  let paused = reducedMotion.matches;
-  const categoryLinks = [...categoryStrip.children];
-  function cloneCategory(link) {
-    const clone = link.cloneNode(true);
-    clone.setAttribute("aria-hidden", "true");
-    clone.tabIndex = -1;
-    return clone;
-  }
-  const trailing = categoryLinks.map(cloneCategory);
-  categoryStrip.prepend(...categoryLinks.map(cloneCategory));
-  categoryStrip.append(...trailing);
-  function offset(link) {
-    return link.getBoundingClientRect().left - categoryStrip.getBoundingClientRect().left + categoryStrip.scrollLeft;
-  }
-  function alignCategories() {
-    categoryStrip.scrollTo({ left: offset(categoryLinks[0]), behavior: "instant" });
-  }
-  function wrapCategories() {
-    const start = offset(categoryLinks[0]);
-    const width = offset(trailing[0]) - start;
-    const current = categoryStrip.scrollLeft;
-    if (width > 0 && (current < start - 1 || current >= start + width - 1)) {
-      const equivalent = current < start ? current + width : Math.max(start, current - width);
-      categoryStrip.scrollTo({ left: equivalent, behavior: "instant" });
+  if (document.querySelector(".store-feature")) {
+    const slides = [...document.querySelectorAll("#store-slide > a")];
+    const controls = [...document.querySelectorAll(".store-slide-controls button[aria-pressed]")];
+    let activeSlide = 0;
+    function showSlide(index) {
+      activeSlide = (index + slides.length) % slides.length;
+      slides.forEach((slide, position) => { slide.hidden = position !== activeSlide; });
+      controls.forEach((control, position) => control.setAttribute("aria-pressed", String(position === activeSlide)));
     }
-  }
-  let scrollTimer;
-  categoryStrip.addEventListener("scroll", () => {
-    window.clearTimeout(scrollTimer);
-    scrollTimer = window.setTimeout(wrapCategories, 160);
-  }, { passive: true });
-  alignCategories();
-  window.addEventListener("resize", alignCategories);
-  function moveCategories(direction) {
-    wrapCategories();
-    const step = offset(categoryLinks[1]) - offset(categoryLinks[0]);
-    categoryStrip.scrollBy({ left: direction * step, behavior: reducedMotion.matches ? "instant" : "smooth" });
-  }
-  for (const control of document.querySelectorAll("[data-category-step]")) {
-    control.onclick = () => moveCategories(Number(control.dataset.categoryStep));
-  }
-  function updateMotion() {
-    motion.textContent = paused ? "Play rotation" : "Pause rotation";
-  }
-  motion.onclick = () => {
-    paused = !paused;
+    controls.forEach((button, index) => { button.onclick = () => showSlide(index); });
+    for (const button of document.querySelectorAll("[data-slide-step]")) {
+      button.onclick = () => showSlide(activeSlide + Number(button.dataset.slideStep));
+    }
+
+    const categoryStrip = document.querySelector(".store-chips");
+    const banner = document.querySelector(".store-feature");
+    const categoryCarousel = document.querySelector(".store-chip-carousel");
+    const motion = document.querySelector("[data-store-motion]");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let paused = reducedMotion.matches;
+    const categoryLinks = [...categoryStrip.children];
+    function cloneCategory(link) {
+      const clone = link.cloneNode(true);
+      clone.setAttribute("aria-hidden", "true");
+      clone.tabIndex = -1;
+      return clone;
+    }
+    const trailing = categoryLinks.map(cloneCategory);
+    categoryStrip.prepend(...categoryLinks.map(cloneCategory));
+    categoryStrip.append(...trailing);
+    function offset(link) {
+      return link.getBoundingClientRect().left - categoryStrip.getBoundingClientRect().left + categoryStrip.scrollLeft;
+    }
+    function alignCategories() {
+      categoryStrip.scrollTo({ left: offset(categoryLinks[0]), behavior: "instant" });
+    }
+    function wrapCategories() {
+      const start = offset(categoryLinks[0]);
+      const width = offset(trailing[0]) - start;
+      const current = categoryStrip.scrollLeft;
+      if (width > 0 && (current < start - 1 || current >= start + width - 1)) {
+        const equivalent = current < start ? current + width : Math.max(start, current - width);
+        categoryStrip.scrollTo({ left: equivalent, behavior: "instant" });
+      }
+    }
+    let scrollTimer;
+    categoryStrip.addEventListener("scroll", () => {
+      window.clearTimeout(scrollTimer);
+      scrollTimer = window.setTimeout(wrapCategories, 160);
+    }, { passive: true });
+    alignCategories();
+    window.addEventListener("resize", alignCategories);
+    function moveCategories(direction) {
+      wrapCategories();
+      const step = offset(categoryLinks[1]) - offset(categoryLinks[0]);
+      categoryStrip.scrollBy({ left: direction * step, behavior: reducedMotion.matches ? "instant" : "smooth" });
+    }
+    for (const control of document.querySelectorAll("[data-category-step]")) {
+      control.onclick = () => moveCategories(Number(control.dataset.categoryStep));
+    }
+    function updateMotion() {
+      motion.textContent = paused ? "Play rotation" : "Pause rotation";
+    }
+    motion.onclick = () => {
+      paused = !paused;
+      updateMotion();
+    };
+    reducedMotion.addEventListener("change", (event) => {
+      paused = event.matches;
+      updateMotion();
+    });
     updateMotion();
-  };
-  reducedMotion.addEventListener("change", (event) => {
-    paused = event.matches;
-    updateMotion();
-  });
-  updateMotion();
-  function canRotate(region) {
-    return !paused && !document.hidden && !region.matches(":hover, :focus-within");
+    function canRotate(region) {
+      return !paused && !document.hidden && !region.matches(":hover, :focus-within");
+    }
+    window.setInterval(() => {
+      if (canRotate(banner)) showSlide(activeSlide + 1);
+    }, 6000);
+    window.setInterval(() => {
+      if (canRotate(categoryCarousel)) moveCategories(1);
+    }, 4200);
+    let swipeStart;
+    banner.addEventListener("touchstart", (event) => {
+      const touch = event.changedTouches[0];
+      swipeStart = [touch.clientX, touch.clientY];
+    }, { passive: true });
+    banner.addEventListener("touchend", (event) => {
+      if (!swipeStart) return;
+      const touch = event.changedTouches[0];
+      const dx = touch.clientX - swipeStart[0];
+      const dy = touch.clientY - swipeStart[1];
+      swipeStart = undefined;
+      if (Math.abs(dx) >= 45 && Math.abs(dx) > Math.abs(dy)) showSlide(activeSlide + (dx < 0 ? 1 : -1));
+    }, { passive: true });
   }
-  window.setInterval(() => {
-    if (canRotate(banner)) showSlide(activeSlide + 1);
-  }, 6000);
-  window.setInterval(() => {
-    if (canRotate(categoryCarousel)) moveCategories(1);
-  }, 4200);
-  let swipeStart;
-  banner.addEventListener("touchstart", (event) => {
-    const touch = event.changedTouches[0];
-    swipeStart = [touch.clientX, touch.clientY];
-  }, { passive: true });
-  banner.addEventListener("touchend", (event) => {
-    if (!swipeStart) return;
-    const touch = event.changedTouches[0];
-    const dx = touch.clientX - swipeStart[0];
-    const dy = touch.clientY - swipeStart[1];
-    swipeStart = undefined;
-    if (Math.abs(dx) >= 45 && Math.abs(dx) > Math.abs(dy)) showSlide(activeSlide + (dx < 0 ? 1 : -1));
-  }, { passive: true });
 
   const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
   const isSale = (item) => Number(item.originalPrice) > Number(item.price);
@@ -212,6 +214,12 @@
         const grid = shelf.querySelector(".store-product-grid");
         const message = shelf.querySelector("[data-shelf-message]");
         const expand = shelf.querySelector("[data-expand]");
+        if (!expand) {
+          grid.replaceChildren(...items.map((item) => productCard(item, collection)));
+          message.textContent = items.length ? "" : "No products are currently listed here.";
+          message.hidden = items.length > 0;
+          continue;
+        }
         const label = expand.textContent;
         const phone = window.matchMedia("(max-width: 600px)");
         function render(expanded) {
