@@ -92,7 +92,6 @@ function showCatalog(products, grid) {
   const phone = grid.hasAttribute("data-mobile-shop") && matchMedia("(max-width: 600px)");
   const showCartAction = phone && categoryPage;
   if (showCartAction) {
-    updateCartCounts();
     document.addEventListener("click", (event) => {
       for (const card of grid.querySelectorAll(".is-cart-open")) {
         if (!card.contains(event.target)) card.classList.remove("is-cart-open");
@@ -331,7 +330,7 @@ function showCatalog(products, grid) {
     card.append(link, cost);
     const actions = window.storeProductActions?.controls(product);
     if (actions) card.append(actions);
-    if (showCartAction) {
+    if (showCartAction && phone.matches) {
       card.append(renderCartAction(product, link.href));
       link.addEventListener("click", (event) => {
         if (event.pointerType !== "touch" || event.metaKey || event.ctrlKey ||
