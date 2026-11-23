@@ -106,7 +106,7 @@
         wax: ["Badder", "Crumble", "Diamonds", "Distillate", "Hash", "Sugar", "Rosin", "Shatter", "Isolate", "HTE Sauce"],
         vapes: ["Disposables", "Nicotine", "Vape Carts"],
         edibles: ["Chocolate", "Gummies", "Snacks", "Syrup"],
-        mushies: ["Edibles", "Shrooms"],
+        mushies: ["Edibles", "Shrooms", "Syrup"],
       };
       const category = fields.querySelector('[name="category"]');
       function setSubcategories(selected = "") {
@@ -137,7 +137,7 @@
       }
       function syncWeights() {
         const breakdown = select.value === "breakdowns";
-        const supportsWeights = ["wax", "snowballs"].includes(category.value.trim().toLowerCase());
+        const supportsWeights = ["wax", "snowballs", "moonrocks", "vapes", "prerolls", "edibles", "mushies", "merch"].includes(category.value.trim().toLowerCase());
         weights.hidden = weights.disabled = !(breakdown || supportsWeights);
         basePrice.hidden = breakdown;
         fields.querySelector('label[for="record-price"]').hidden = breakdown;

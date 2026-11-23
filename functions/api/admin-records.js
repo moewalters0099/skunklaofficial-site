@@ -48,7 +48,7 @@ export async function onRequest(context) {
   }
   const details = {};
   const breakdown = kind === "products" && String(input?.category ?? "").trim().toLowerCase() === "flower" && input?.subcategory === "breakdowns";
-  const supportsWeights = kind === "products" && ["wax", "snowballs"].includes(String(input?.category ?? "").trim().toLowerCase());
+  const supportsWeights = kind === "products" && ["wax", "snowballs", "moonrocks", "vapes", "prerolls", "edibles", "mushies", "merch"].includes(String(input?.category ?? "").trim().toLowerCase());
   if ((breakdown || (supportsWeights && Object.keys(input?.weightPrices ?? {}).length)) && input.weightPrices !== undefined) {
     const weights = input.weightPrices;
     const allowed = ["2 Gram", "3.5g", "Half Ounce", "Ounce", "Quarter Pound", "Half Pound", "Pound", "100g", "kg"];
@@ -95,7 +95,7 @@ export async function onRequest(context) {
         wax: ["badder", "crumble", "diamonds", "distillate", "hash", "sugar", "rosin", "shatter", "isolate", "hte-sauce"],
         vapes: ["disposables", "nicotine", "vape-carts"],
         edibles: ["chocolate", "gummies", "snacks", "syrup"],
-        mushies: ["edibles", "shrooms"],
+        mushies: ["edibles", "shrooms", "syrup"],
       };
       const category = details.category.toLowerCase();
       if (input.subcategory !== "" && (!Object.hasOwn(groups, category) || !groups[category].includes(input.subcategory))) {
