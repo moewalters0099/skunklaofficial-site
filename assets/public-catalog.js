@@ -85,13 +85,14 @@ function showCatalog(products, grid) {
     }
     return !bracket || amounts.some((amount) => amount >= lower * 100 && (lower === 1600 ? amount <= 200000 : amount < (lower + 400) * 100));
   });
+  const latestListings = grid.hasAttribute("data-mobile-shop") ? [...listings] : null;
   if (category === "wax") listings.sort((a, b) => a.name.localeCompare(b.name));
   let matches = grid.hasAttribute("data-featured") ? listings.slice(0, 6) : listings;
   const count = document.querySelector(".catalog-count");
   const phone = grid.hasAttribute("data-mobile-shop") && matchMedia("(max-width: 600px)");
   const newProducts = new Set((grid.dataset.flowerNew ?? "").split(" "));
+  const rank = new Map((grid.dataset.flowerOrder ?? "").split(" ").map((id, index) => [id, index]));
   if (categoryPage) {
-    const rank = new Map(grid.dataset.flowerOrder.split(" ").map((id, index) => [id, index]));
     const sort = document.querySelector("#flower-sort");
     sort.value = query.get("sort") ?? "";
     if (sort.selectedIndex < 0) sort.value = "";
@@ -159,17 +160,23 @@ function showCatalog(products, grid) {
 
     function renderPhone() {
       const alphabetical = (a, b) => a.name.localeCompare(b.name);
-      ordered = [...listings];
+      ordered = [...(sortValue === "latest" ? latestListings : listings)];
       if (sortValue !== "latest") ordered.sort((a, b) => {
         if (sortValue === "price-asc") return cents(a) - cents(b) || alphabetical(a, b);
         if (sortValue === "price-desc") return cents(b) - cents(a) || alphabetical(a, b);
-        return alphabetical(a, b);
+        return (rank.get(a.id) ?? Infinity) - (rank.get(b.id) ?? Infinity) || alphabetical(a, b);
       });
       visible = Math.min(pageSize, ordered.length);
       grid.replaceChildren(...ordered.slice(0, visible).map(renderCard));
       updateCount();
     }
 
+    const phoneFilters = document.querySelector("[data-shop-category-filters]");
+    if (phoneFilters && filters) {
+      for (const section of filters.querySelectorAll("details")) {
+        phoneFilters.append(section.cloneNode(true));
+      }
+    }
     for (const trigger of document.querySelectorAll("[data-shop-open]")) {
       trigger.onclick = () => document.getElementById(trigger.dataset.shopOpen).showModal();
     }

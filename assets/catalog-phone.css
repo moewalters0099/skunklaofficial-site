@@ -3,7 +3,9 @@
 }
 
 @media (max-width: 600px) {
-  body:has([data-mobile-shop]) > .site-header,
+  body:has([data-mobile-shop]) > :is(.site-header, .store-head, .flower-category-nav),
+  .flower-main:has([data-mobile-shop]) > :is(.flower-breadcrumb, h1),
+  .flower-main:has([data-mobile-shop]) :is(.catalog-sidebar, .flower-toolbar, .product-action-bar, .catalog-load-more),
   .catalog-main > :is(.catalog-top, .catalog-breadcrumb, .category-quicklinks),
   [data-mobile-shop] .product-card-actions,
   .catalog-main :is(.catalog-sidebar, .catalog-toolbar, .product-action-bar),
@@ -90,7 +92,7 @@
     font-weight: 700;
   }
 
-  .catalog-main {
+  :is(.catalog-main, .flower-main:has([data-mobile-shop])) {
     padding: 22px 15px 85px;
   }
 
@@ -254,7 +256,8 @@
     margin-top: 26px;
   }
 
-  [data-mobile-shop] {
+  .flower-grid[data-mobile-shop],
+  .catalog-grid[data-mobile-shop] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 28px 16px;
   }
@@ -405,6 +408,16 @@
   .shop-phone-dialog a[aria-current] {
     background: #f1f1f1;
     font-weight: 700;
+  }
+
+  [data-shop-category-filters] details {
+    border-top: 1px solid #eee;
+    padding: 12px 0;
+  }
+
+  [data-shop-category-filters] a {
+    display: block;
+    padding: 8px;
   }
 
   .shop-phone-dialog input {
