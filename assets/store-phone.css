@@ -69,17 +69,17 @@
 
 @media (max-width: 600px) {
   .store-collection .store-chip-carousel,
-  .store-collection .store-announcement > :is(span, strong) {
+  :is(.store-home-page, .store-collection) .store-announcement > :is(span, strong) {
     display: none;
   }
 
-  .store-collection .store-announcement {
+  :is(.store-home-page, .store-collection) .store-announcement {
     grid-template-columns: minmax(0, 1fr);
     min-height: 72px;
     padding: 12px 10px;
   }
 
-  .store-collection .store-announcement nav {
+  :is(.store-home-page, .store-collection) .store-announcement nav {
     justify-content: center;
     gap: clamp(8px, 3.5vw, 15px);
     border: 0;
@@ -87,11 +87,11 @@
     font-size: clamp(11px, 3.6vw, 14px);
   }
 
-  .store-collection .store-announcement nav a {
+  :is(.store-home-page, .store-collection) .store-announcement nav a {
     gap: clamp(4px, 2vw, 8px);
   }
 
-  .store-collection .store-announcement nav img {
+  :is(.store-home-page, .store-collection) .store-announcement nav img {
     height: clamp(22px, 7.2vw, 28px);
   }
 
@@ -132,5 +132,49 @@
 
   .store-collection-page .store-product-grid {
     column-gap: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .store-home-page .store-head {
+    min-height: 58px;
+    padding-inline: 12px 15px;
+    gap: 14px;
+    box-shadow: none;
+    color: #000;
+    font-family: GeneralSans, Arial, sans-serif;
+  }
+
+  .store-home-page .store-head .store-logo img {
+    width: min(38vw, 148px);
+  }
+
+  .store-home-page .store-head [data-menu-open] {
+    position: relative;
+    width: 34px;
+    font-size: 0;
+  }
+
+  .store-home-page .store-head [data-menu-open]::before {
+    content: "";
+    width: 16px;
+    height: 2px;
+    border-radius: 1px;
+    background: currentColor;
+    box-shadow: 0 -5px currentColor, 0 5px currentColor;
+  }
+
+  .store-home-page .store-mobile-search span {
+    width: 15px;
+    height: 15px;
+    border-width: 2px;
+  }
+
+  .store-home-page .store-mobile-search span::after {
+    height: 2px;
+  }
+
+  .store-home-page .store-head .store-cart-count {
+    font: 600 11px/1 GeneralSans, Arial, sans-serif;
   }
 }
