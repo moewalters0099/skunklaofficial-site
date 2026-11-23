@@ -10,7 +10,7 @@
 .store-copyright{padding:16px 20px;text-align:center;background:#191919;color:#efefef;font-size:14px}
 .store-notices{box-sizing:border-box;max-width:880px;margin:auto;padding:36px 20px;text-align:center;font-size:14px;line-height:1.75}
 .store-notices p{margin:0 0 26px}
-.store-notices p:last-child{margin:0}
+.store-notices p:last-child{margin:0;color:#858585;font-weight:400}
 .store-notices strong{color:white}
 @media(max-width:991px){.store-benefits-inner{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 16px}}
 @media(max-width:560px){.store-benefits-inner{grid-template-columns:1fr;padding:26px 20px}.store-benefit-icon{flex-basis:56px;height:56px}.store-benefit-icon svg{width:25px;height:25px}}
