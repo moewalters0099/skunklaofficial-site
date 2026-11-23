@@ -137,11 +137,11 @@
       }
       function syncWeights() {
         const breakdown = select.value === "breakdowns";
-        const wax = category.value.trim().toLowerCase() === "wax";
-        weights.hidden = weights.disabled = !(breakdown || wax);
+        const supportsWeights = ["wax", "snowballs"].includes(category.value.trim().toLowerCase());
+        weights.hidden = weights.disabled = !(breakdown || supportsWeights);
         basePrice.hidden = breakdown;
         fields.querySelector('label[for="record-price"]').hidden = breakdown;
-        basePrice.required = !(breakdown || wax);
+        basePrice.required = !(breakdown || supportsWeights);
       }
       select.addEventListener("change", syncWeights);
       category.addEventListener("input", syncWeights);

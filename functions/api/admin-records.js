@@ -48,8 +48,8 @@ export async function onRequest(context) {
   }
   const details = {};
   const breakdown = kind === "products" && String(input?.category ?? "").trim().toLowerCase() === "flower" && input?.subcategory === "breakdowns";
-  const wax = kind === "products" && String(input?.category ?? "").trim().toLowerCase() === "wax";
-  if ((breakdown || (wax && Object.keys(input?.weightPrices ?? {}).length)) && input.weightPrices !== undefined) {
+  const supportsWeights = kind === "products" && ["wax", "snowballs"].includes(String(input?.category ?? "").trim().toLowerCase());
+  if ((breakdown || (supportsWeights && Object.keys(input?.weightPrices ?? {}).length)) && input.weightPrices !== undefined) {
     const weights = input.weightPrices;
     const allowed = ["2 Gram", "3.5g", "Half Ounce", "Ounce", "Quarter Pound", "Half Pound", "Pound", "100g", "kg"];
     if (!weights || typeof weights !== "object" || Array.isArray(weights) ||
