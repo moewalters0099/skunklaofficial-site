@@ -297,7 +297,21 @@ function openCart(products, message = "") {
   if (!drawer.open) drawer.showModal();
 }
 
-function showProduct(products, root) {
+async function playableVideo(source) {
+  if (!/^https:\/\/skunkla\.com\/wp-content\/uploads\/(?:[a-z0-9_-]+\/)*[a-z0-9_.-]+\.mov$/i.test(source ?? "")) return source;
+  try {
+    const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(source));
+    const key = [...new Uint8Array(bytes)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+    const path = "/assets/products/converted/" + key + ".mp4";
+    const response = await fetch(path, { method: "HEAD", cache: "no-store", signal: AbortSignal.timeout(2000) });
+    if (response.ok && response.headers.get("Content-Type")?.startsWith("video/mp4")) return new URL(path, location.origin).href;
+  } catch {
+    // Keep the original link available if the converted file is still deploying.
+  }
+  return source;
+}
+
+async function showProduct(products, root) {
   const id = new URLSearchParams(location.search).get("id");
   const product = products.find((item) => item.id === id);
   const message = document.querySelector("#catalog-message");
@@ -318,14 +332,15 @@ function showProduct(products, root) {
     return { element: image, label: "Photo " + (index + 1) };
   });
   let videoLink;
-  if (product.video_url?.startsWith("https://")) {
+  const videoSource = await playableVideo(product.video_url);
+  if (videoSource?.startsWith("https://")) {
     videoLink = make("a", "Open product video");
-    videoLink.href = product.video_url;
+    videoLink.href = videoSource;
     videoLink.target = "_blank";
     videoLink.rel = "noopener noreferrer";
-    if (/\.(mp4|webm)(?:[?#]|$)/i.test(product.video_url)) {
+    if (/\.(mp4|webm)(?:[?#]|$)/i.test(videoSource)) {
       const video = make("video", "");
-      video.src = product.video_url;
+      video.src = videoSource;
       video.controls = true;
       video.playsInline = true;
       video.preload = "none";
@@ -453,7 +468,7 @@ function showProduct(products, root) {
     const products = await response.json();
     const grid = document.querySelector("[data-category]");
     const productPage = document.querySelector("[data-product-page]");
-    if (productPage) showProduct(products, productPage);
+    if (productPage) await showProduct(products, productPage);
     else if (grid) {
       showCatalog(products, grid);
       grid.closest("section")?.querySelector("[data-open-cart], .catalog-toolbar a")?.addEventListener("click", (event) => {

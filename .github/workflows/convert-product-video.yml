@@ -1,0 +1,63 @@
+name: Convert product video
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: Public SKUNKLA MOV link
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      VIDEO_SOURCE: ${{ inputs.source }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Convert and verify MP4
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! $VIDEO_SOURCE =~ ^https://skunkla\.com/wp-content/uploads/([a-zA-Z0-9_-]+/)*[a-zA-Z0-9_.-]+\.[mM][oO][vV]$ ]]; then
+            echo "::error::The video must be a MOV under the SKUNKLA uploads directory."
+            exit 1
+          fi
+          key=$(printf '%s' "$VIDEO_SOURCE" | sha256sum | cut -d' ' -f1)
+          target="assets/products/converted/${key}.mp4"
+          if [[ -s $target ]]; then exit 0; fi
+          input=$(mktemp)
+          trap 'rm -f "$input"' EXIT
+          curl --fail --silent --show-error --max-time 90 --max-filesize 50000000 \
+            --proto '=https' --output "$input" "$VIDEO_SOURCE"
+          if ! command -v ffmpeg >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq ffmpeg
+          fi
+          duration=$(ffprobe -v error -protocol_whitelist file -show_entries format=duration -of csv=p=0 "$input")
+          awk -v duration="$duration" 'BEGIN { exit !(duration > 0 && duration <= 120) }'
+          mkdir -p "$(dirname "$target")"
+          ffmpeg -nostdin -hide_banner -loglevel error -protocol_whitelist file \
+            -i "$input" -map 0:v:0 -map '0:a:0?' \
+            -vf 'scale=-2:min(480\,ih)' -c:v libx264 -pix_fmt yuv420p -crf 28 \
+            -c:a aac -b:a 64k -movflags +faststart "$target"
+          test "$(wc -c < "$target")" -lt 24000000
+          test "$(ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 "$target")" = h264
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- "$target"
+          git commit -m "Add converted product video ${key:0:12}"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            if git cat-file -e "origin/main:$target" 2>/dev/null; then exit 0; fi
+            git rebase origin/main
+            if git push origin HEAD:main; then exit 0; fi
+            sleep "$attempt"
+          done
+          exit 1

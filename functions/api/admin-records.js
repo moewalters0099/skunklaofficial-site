@@ -1,3 +1,4 @@
+import { queueProductVideo } from "../_shared/video-workflow.js";
 import { mediaUrl } from "../_shared/media-url.js";
 import { onRequestGet as checkSession } from "./admin-session.js";
 
@@ -98,10 +99,10 @@ export async function onRequest(context) {
     const updated = await env.DB.prepare("UPDATE admin_records SET details=json_patch(details, ?), updated_at=? WHERE id=? AND kind=?")
       .bind(JSON.stringify(details), now, id, kind).run();
     if (!updated.meta.changes) return json({ error: "Record was not found." }, 404);
-    return json({ id });
+    return json({ id, videoConversion: await queueProductVideo(env, kind, id) });
   }
   const newId = crypto.randomUUID();
   await env.DB.prepare("INSERT INTO admin_records (id,kind,details,updated_at) VALUES (?,?,?,?)")
     .bind(newId, kind, JSON.stringify(details), now).run();
-  return json({ id: newId }, 201);
+  return json({ id: newId, videoConversion: await queueProductVideo(env, kind, newId) }, 201);
 }
