@@ -1,0 +1,37 @@
+.store-mobile-bag{display:none}
+@media(max-width:600px){
+  .store-head{min-height:58px;gap:8px;padding:5px 15px;box-shadow:0 5px 18px #0002}
+  .store-head .store-logo img{width:clamp(118px,38vw,148px)}
+  .store-head .store-actions{gap:8px}
+  .store-head [data-product-actions-header],.store-desktop-cart-label{display:none}
+  .store-mobile-bag{display:block}
+  .store-head .store-cart-count,.store-mobile-count{display:grid;place-items:center;position:absolute;min-width:20px;height:20px;padding-inline:2px;border-radius:50%;background:#e52227;color:#fff;font-size:11px;line-height:1;font-weight:600}
+  .store-head a[aria-label="Shopping cart"]{position:relative;padding-right:12px}
+  .store-head .store-cart-count{right:0;top:4px}
+  .store-bottom{min-height:56px;box-shadow:0 -4px 14px #0001;color:#000}
+  .store-bottom a,.store-bottom button{position:relative;min-height:56px;line-height:1;padding:0;border-right:1px solid #ececec}
+  .store-mobile-count{left:calc(50% + 2px);top:5px}
+  .storefront-content{width:calc(100% - 30px)}
+  .store-section{margin-top:82px}
+  .store-section-head{display:grid;gap:5px;padding:0 10px 13px;margin-bottom:36px}
+  .store-section-head h2{font-size:24px;color:#000}
+  .store-section-head a,.store-section-head button{justify-self:end;font-size:16px;color:#000}
+  .store-tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .store-tiles a{gap:0;background:#f1f1f1;padding:14px 8px 16px;border-radius:12px;color:#000}
+  .store-tiles img{aspect-ratio:1;object-fit:contain}
+  .store-product-grid{column-gap:30px;row-gap:22px}
+  .store-card-media{aspect-ratio:1;overflow:hidden}
+  .store-card-media img{position:absolute;inset:0}
+  .store-card-category{margin-top:20px;color:#777}
+  .store-product-card h3{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#000;min-height:2.6em}
+  .store-card-price{color:#1689a9}
+  .store-card-price.is-sale{color:#e52227}
+  .store-card-badge{background:#e52227;font-size:12px;line-height:1;padding:6px 10px}
+  .store-card-badge.is-new{background:#8e78bc}
+  .store-card-media .store-card-badge + .store-card-badge{top:40px}
+  .store-product-shell .product-card-actions{opacity:0;pointer-events:none}
+  .store-product-shell:focus-within .product-card-actions,.store-product-shell:hover .product-card-actions{opacity:1;pointer-events:auto}
+}
+@media(min-width:601px) and (max-width:800px){
+  .store-bottom .store-mobile-count{position:absolute}
+}

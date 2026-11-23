@@ -174,12 +174,15 @@
         const message = shelf.querySelector("[data-shelf-message]");
         const expand = shelf.querySelector("[data-expand]");
         const label = expand.textContent;
+        const phone = window.matchMedia("(max-width: 600px)");
         function render(expanded) {
-          grid.replaceChildren(...(expanded ? items : items.slice(0, 5)).map((item) => productCard(item, collection)));
+          const previewCount = phone.matches ? 2 : 5;
+          grid.replaceChildren(...(expanded ? items : items.slice(0, previewCount)).map((item) => productCard(item, collection)));
+          expand.hidden = items.length <= previewCount;
           expand.setAttribute("aria-expanded", String(expanded));
           expand.textContent = expanded ? "Show fewer products" : label;
         }
-        expand.hidden = items.length <= 5;
+        phone.addEventListener("change", () => render(expand.getAttribute("aria-expanded") === "true"));
         expand.onclick = () => render(expand.getAttribute("aria-expanded") !== "true");
         message.textContent = items.length ? "" : "No products are currently listed here.";
         message.hidden = items.length > 0;
@@ -198,6 +201,8 @@
       const count = JSON.parse(localStorage.getItem("skunkla-cart") || "[]")
         .reduce((total, [, quantity]) => total + quantity, 0);
       document.querySelector(".store-cart-count").textContent = count;
+      const mobileCount = document.querySelector("[data-mobile-cart-count]");
+      if (mobileCount) mobileCount.textContent = count;
     } catch {}
   }
   updateCount();

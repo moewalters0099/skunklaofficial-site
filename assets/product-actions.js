@@ -24,6 +24,10 @@
   const header = document.querySelector("[data-product-actions-header]");
   const status = node("span", "");
   status.setAttribute("role", "status");
+  const mobileWishlist = document.querySelector("[data-mobile-wishlist]");
+  const mobileCount = mobileWishlist?.querySelector("[data-mobile-wishlist-count]");
+  mobileWishlist?.addEventListener("click", () => showList("wishlist"));
+  if (mobileCount) mobileCount.textContent = lists.wishlist.size;
   const buttons = new Map();
   let active;
   dialog.append(close, title, content);
@@ -130,6 +134,7 @@
     open(collections[key], [grid]);
   }
   function refresh() {
+    if (mobileCount) mobileCount.textContent = lists.wishlist.size;
     for (const key of Object.keys(collections)) {
       const label = collections[key] + " (" + lists[key].size + ")";
       summary[key].textContent = header ? (key === "wishlist" ? "☆" : "⇄") : label;
