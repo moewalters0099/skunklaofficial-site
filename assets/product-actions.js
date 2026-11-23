@@ -21,6 +21,7 @@
   bar.className = "product-action-bar";
   bar.setAttribute("aria-label", "Saved products");
   const summary = {};
+  const header = document.querySelector("[data-product-actions-header]");
   const status = node("span", "");
   status.setAttribute("role", "status");
   const buttons = new Map();
@@ -31,6 +32,10 @@
   for (const key of Object.keys(collections)) {
     summary[key] = button("", () => showList(key));
     bar.append(summary[key]);
+  }
+  if (header) {
+    bar.classList.add("product-action-bar-header");
+    status.className = "sr-only";
   }
   bar.append(status);
 
@@ -125,7 +130,12 @@
     open(collections[key], [grid]);
   }
   function refresh() {
-    for (const key of Object.keys(collections)) summary[key].textContent = collections[key] + " (" + lists[key].size + ")";
+    for (const key of Object.keys(collections)) {
+      const label = collections[key] + " (" + lists[key].size + ")";
+      summary[key].textContent = header ? (key === "wishlist" ? "☆" : "⇄") : label;
+      summary[key].setAttribute("aria-label", label);
+      summary[key].title = collections[key];
+    }
     for (const [control, { key, id }] of buttons) {
       if (!control.isConnected) {
         buttons.delete(control);
@@ -159,7 +169,10 @@
   window.storeProductActions = {
     mount(items, anchor) {
       for (const item of items) products.set(item.id, item);
-      if (!bar.isConnected) anchor.before(bar);
+      if (!bar.isConnected) {
+        if (header) header.append(bar);
+        else anchor.before(bar);
+      }
       refresh();
     },
     controls(product) {

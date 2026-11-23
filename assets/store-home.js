@@ -36,11 +36,42 @@
   const motion = document.querySelector("[data-store-motion]");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   let paused = reducedMotion.matches;
-  function moveCategories(direction, automatic = false) {
-    const maximum = categoryStrip.scrollWidth - categoryStrip.clientWidth;
-    const next = categoryStrip.scrollLeft + direction * (categoryStrip.firstElementChild.offsetWidth + 16);
-    const position = automatic && categoryStrip.scrollLeft >= maximum - 1 ? 0 : Math.max(0, Math.min(next, maximum));
-    categoryStrip.scrollTo({ left: position, behavior: reducedMotion.matches ? "instant" : "smooth" });
+  const categoryLinks = [...categoryStrip.children];
+  function cloneCategory(link) {
+    const clone = link.cloneNode(true);
+    clone.setAttribute("aria-hidden", "true");
+    clone.tabIndex = -1;
+    return clone;
+  }
+  const trailing = categoryLinks.map(cloneCategory);
+  categoryStrip.prepend(...categoryLinks.map(cloneCategory));
+  categoryStrip.append(...trailing);
+  function offset(link) {
+    return link.getBoundingClientRect().left - categoryStrip.getBoundingClientRect().left + categoryStrip.scrollLeft;
+  }
+  function alignCategories() {
+    categoryStrip.scrollTo({ left: offset(categoryLinks[0]), behavior: "instant" });
+  }
+  function wrapCategories() {
+    const start = offset(categoryLinks[0]);
+    const width = offset(trailing[0]) - start;
+    const current = categoryStrip.scrollLeft;
+    if (width > 0 && (current < start - 1 || current >= start + width - 1)) {
+      const equivalent = current < start ? current + width : Math.max(start, current - width);
+      categoryStrip.scrollTo({ left: equivalent, behavior: "instant" });
+    }
+  }
+  let scrollTimer;
+  categoryStrip.addEventListener("scroll", () => {
+    window.clearTimeout(scrollTimer);
+    scrollTimer = window.setTimeout(wrapCategories, 160);
+  }, { passive: true });
+  alignCategories();
+  window.addEventListener("resize", alignCategories);
+  function moveCategories(direction) {
+    wrapCategories();
+    const step = offset(categoryLinks[1]) - offset(categoryLinks[0]);
+    categoryStrip.scrollBy({ left: direction * step, behavior: reducedMotion.matches ? "instant" : "smooth" });
   }
   for (const control of document.querySelectorAll("[data-category-step]")) {
     control.onclick = () => moveCategories(Number(control.dataset.categoryStep));
@@ -64,7 +95,7 @@
     if (canRotate(banner)) showSlide(activeSlide + 1);
   }, 6000);
   window.setInterval(() => {
-    if (canRotate(categoryCarousel)) moveCategories(1, true);
+    if (canRotate(categoryCarousel)) moveCategories(1);
   }, 4200);
   let swipeStart;
   banner.addEventListener("touchstart", (event) => {

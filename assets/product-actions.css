@@ -18,3 +18,5 @@
 .product-saved-grid{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(11rem,1fr);gap:.75rem;overflow:auto}
 .product-saved-grid article{border:1px solid #ddd;padding:.75rem}
 .product-saved-grid article button{display:block;margin-top:.5rem}
+.product-action-bar-header{margin:0;gap:.35rem;flex-wrap:nowrap}
+.product-action-bar-header button{width:2rem;height:2rem;padding:0;line-height:1;font-size:1.2rem;border:0;border-radius:50%}
