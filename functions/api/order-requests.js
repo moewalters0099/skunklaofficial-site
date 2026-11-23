@@ -42,7 +42,7 @@ export async function onRequestPost({ request, env }) {
   }
   if (items.some((item) => !item || typeof item.id !== "string" || !uuid.test(item.id) ||
       !Number.isSafeInteger(item.qty) || item.qty < 1 ||
-      (item.weight !== undefined && !["3.5g", "Half Ounce", "Ounce", "Quarter Pound", "Half Pound", "Pound"].includes(item.weight))) ||
+      (item.weight !== undefined && !["2 Gram", "3.5g", "Half Ounce", "Ounce", "Quarter Pound", "Half Pound", "Pound", "100g", "kg"].includes(item.weight))) ||
       new Set(items.map((item) => item.id + "|" + (item.weight ?? ""))).size !== items.length) {
     return json({ error: "One or more cart items are invalid." }, 400);
   }

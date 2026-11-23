@@ -65,10 +65,13 @@ function showCatalog(products, grid) {
     }
   }
   const listings = products.filter((item) => {
-    if (category && item.category.trim().toLowerCase() !== category) return false;
+    const primaryCategory = item.category.trim().toLowerCase();
+    const secondary = item.categoryMemberships?.[category];
+    if (category && primaryCategory !== category && !secondary) return false;
     if (search && ![item.name, item.sku, item.category].some((value) => value?.toLowerCase().includes(search))) return false;
     if (!filters) return true;
-    if (subcategory && item.subcategory !== subcategory && !item.subcategories?.includes(subcategory)) return false;
+    const subcategories = secondary ?? item.subcategories ?? [item.subcategory];
+    if (subcategory && !subcategories.includes(subcategory)) return false;
     const amounts = item.weightPrices ? Object.values(item.weightPrices).map((amount) => Math.round(Number(amount) * 100)) : [cents(item)];
     if (hasConfiguredRanges) {
       if (!configuredRange) return true;
@@ -79,6 +82,7 @@ function showCatalog(products, grid) {
     }
     return !bracket || amounts.some((amount) => amount >= lower * 100 && (lower === 1600 ? amount <= 200000 : amount < (lower + 400) * 100));
   });
+  if (category === "wax") listings.sort((a, b) => a.name.localeCompare(b.name));
   const matches = grid.hasAttribute("data-featured") ? listings.slice(0, 6) : listings;
   document.querySelector(".catalog-count").textContent = matches.length + (matches.length === 1 ? " item listed" : " items listed");
   const message = document.querySelector("#catalog-message");
@@ -348,7 +352,7 @@ async function showProduct(products, root) {
   document.title = product.name + " | SKUNKLA";
   message.textContent = "";
   const media = root.querySelector("[data-product-media]");
-  const photos = [...new Set([product.photo_url, product.photo_url_2, product.photo_url_3, product.photo_url_4]
+  const photos = [...new Set([product.photo_url, product.photo_url_2, product.photo_url_3, product.photo_url_4, ...(product.extraPhotos ?? [])]
     .filter((url) => typeof url === "string" && url.startsWith("https://")))];
   const slides = photos.map((url, index) => {
     const image = make("img", "");
@@ -449,7 +453,7 @@ async function showProduct(products, root) {
     media.append(gallery);
   }
   if (videoLink) media.append(videoLink);
-  root.querySelector("h1").textContent = [product.name, product.sku].filter(Boolean).join(" – ");
+  root.querySelector("h1").textContent = product.displayName || [product.name, product.sku].filter(Boolean).join(" – ");
   const priceLabel = root.querySelector("[data-price]");
   priceLabel.textContent = productPrice(product);
   if (Number(product.originalPrice) > Number(product.price)) {
@@ -469,7 +473,7 @@ async function showProduct(products, root) {
     weightSelect = document.createElement("select");
     weightSelect.required = true;
     weightSelect.add(new Option("Choose a weight", ""));
-    for (const weight of ["3.5g", "Half Ounce", "Ounce", "Quarter Pound", "Half Pound", "Pound"]) {
+    for (const weight of ["2 Gram", "3.5g", "Half Ounce", "Ounce", "Quarter Pound", "Half Pound", "Pound", "100g", "kg"]) {
       const amount = product.weightPrices[weight];
       if (amount !== undefined) weightSelect.add(new Option(weight + " · " + currency.format(Number(amount)), weight));
     }

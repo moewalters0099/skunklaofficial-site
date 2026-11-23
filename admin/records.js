@@ -103,7 +103,7 @@
       select.name = "subcategory";
       const groups = {
         flower: ["Breakdowns", "Deps", "Indoors", "Indoor Smalls", "Lows"],
-        wax: ["Badder", "Crumble", "Diamonds", "Distillate", "Hash", "Sugar", "Rosin", "Shatter"],
+        wax: ["Badder", "Crumble", "Diamonds", "Distillate", "Hash", "Sugar", "Rosin", "Shatter", "Isolate", "HTE Sauce"],
         vapes: ["Disposables", "Nicotine", "Vape Carts"],
         edibles: ["Chocolate", "Gummies", "Snacks", "Syrup"],
         mushies: ["Edibles", "Shrooms"],
@@ -124,7 +124,7 @@
       weights.append(node("legend", "Price by weight (USD)"));
       weights.append(node("p", "Enter a price for each weight you offer. Leave unavailable weights blank."));
       const basePrice = fields.querySelector('[name="price"]');
-      for (const weight of ["3.5g", "Half Ounce", "Ounce", "Quarter Pound", "Half Pound", "Pound"]) {
+      for (const weight of ["2 Gram", "3.5g", "Half Ounce", "Ounce", "Quarter Pound", "Half Pound", "Pound", "100g", "kg"]) {
         const input = document.createElement("input");
         input.name = "weight:" + weight;
         input.id = "weight-" + weight.replaceAll(" ", "-");
@@ -137,10 +137,11 @@
       }
       function syncWeights() {
         const breakdown = select.value === "breakdowns";
-        weights.hidden = weights.disabled = !breakdown;
+        const wax = category.value.trim().toLowerCase() === "wax";
+        weights.hidden = weights.disabled = !(breakdown || wax);
         basePrice.hidden = breakdown;
         fields.querySelector('label[for="record-price"]').hidden = breakdown;
-        basePrice.required = !breakdown;
+        basePrice.required = !(breakdown || wax);
       }
       select.addEventListener("change", syncWeights);
       category.addEventListener("input", syncWeights);

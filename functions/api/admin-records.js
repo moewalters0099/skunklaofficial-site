@@ -48,9 +48,10 @@ export async function onRequest(context) {
   }
   const details = {};
   const breakdown = kind === "products" && String(input?.category ?? "").trim().toLowerCase() === "flower" && input?.subcategory === "breakdowns";
-  if (breakdown && input.weightPrices !== undefined) {
+  const wax = kind === "products" && String(input?.category ?? "").trim().toLowerCase() === "wax";
+  if ((breakdown || (wax && Object.keys(input?.weightPrices ?? {}).length)) && input.weightPrices !== undefined) {
     const weights = input.weightPrices;
-    const allowed = ["3.5g", "Half Ounce", "Ounce", "Quarter Pound", "Half Pound", "Pound"];
+    const allowed = ["2 Gram", "3.5g", "Half Ounce", "Ounce", "Quarter Pound", "Half Pound", "Pound", "100g", "kg"];
     if (!weights || typeof weights !== "object" || Array.isArray(weights) ||
         !Object.keys(weights).length || Object.entries(weights).some(([key, amount]) =>
           !allowed.includes(key) || typeof amount !== "string" || !/^\d{1,9}(\.\d{1,2})?$/.test(amount))) {
@@ -91,7 +92,7 @@ export async function onRequest(context) {
     if (input.subcategory !== undefined) {
       const groups = {
         flower: ["breakdowns", "deps", "indoors", "indoor-smalls", "lows"],
-        wax: ["badder", "crumble", "diamonds", "distillate", "hash", "sugar", "rosin", "shatter"],
+        wax: ["badder", "crumble", "diamonds", "distillate", "hash", "sugar", "rosin", "shatter", "isolate", "hte-sauce"],
         vapes: ["disposables", "nicotine", "vape-carts"],
         edibles: ["chocolate", "gummies", "snacks", "syrup"],
         mushies: ["edibles", "shrooms"],

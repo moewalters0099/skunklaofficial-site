@@ -1,0 +1,101 @@
+name: Convert existing Wax product videos
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/wax-video-backfill.yml']
+permissions:
+  contents: write
+concurrency:
+  group: wax-video-backfill
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Download, transcode and check the clips
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v ffmpeg >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq ffmpeg
+          fi
+          python - <<'PY'
+          import hashlib
+          import json
+          import re
+          import subprocess
+          import tempfile
+          from concurrent.futures import ThreadPoolExecutor
+          from pathlib import Path
+
+          sources = ["https://skunkla.com/wp-content/uploads/2026/06/CRUMBLE-V.mov", "https://skunkla.com/wp-content/uploads/2026/06/WHOLE-MELT-SUGAR-MILE-HIGH-V.mov", "https://skunkla.com/wp-content/uploads/2026/08/WHOLE-MELT-SUGAR-PASSPORT-EDITION-V.mov", "https://skunkla.com/wp-content/uploads/2026/11/DROOL-WAX-14G-JAR-V.mov", "https://skunkla.com/wp-content/uploads/2026/11/SUGAR-V.mov"]
+          output = Path("assets/products/converted")
+          output.mkdir(parents=True, exist_ok=True)
+          allowed = re.compile(r"https://skunkla\.com/wp-content/uploads/(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_.-]+\.[mM][oO][vV]")
+
+          def convert(url):
+              if not allowed.fullmatch(url):
+                  raise ValueError("Unapproved source URL")
+              key = hashlib.sha256(url.encode()).hexdigest()
+              target = output / (key + ".mp4")
+              if target.is_file() and target.stat().st_size:
+                  return True
+              try:
+                  with tempfile.TemporaryDirectory() as tmp:
+                      source = Path(tmp) / "source.mov"
+                      encoded = Path(tmp) / "converted.mp4"
+                      subprocess.run(["curl", "-fSs", "--retry", "2", "--max-time", "90",
+                                      "--max-filesize", "160000000", "--proto", "=https",
+                                      "-o", str(source), url], check=True, timeout=220)
+                      for height, quality in [(480, 27), (360, 31)]:
+                          subprocess.run(["ffmpeg", "-y", "-nostdin", "-v", "error",
+                                          "-protocol_whitelist", "file", "-threads", "2", "-i", str(source),
+                                          "-map", "0:v:0", "-map", "0:a:0?", "-vf", f"scale=-2:min({height}\\,ih)",
+                                          "-c:v", "libx264", "-threads", "2", "-pix_fmt", "yuv420p",
+                                          "-preset", "veryfast", "-crf", str(quality),
+                                          "-c:a", "aac", "-b:a", "64k", "-movflags", "+faststart",
+                                          str(encoded)], check=True, timeout=240)
+                          if encoded.stat().st_size < 24_000_000:
+                              break
+                      else:
+                          raise ValueError("MP4 exceeds the hosting file size limit")
+                      info = json.loads(subprocess.check_output([
+                          "ffprobe", "-v", "error", "-show_streams", "-of", "json", str(encoded)
+                      ], text=True, timeout=15))
+                      if not any(s.get("codec_name") == "h264" and float(s.get("duration", 0)) > 0
+                                 for s in info["streams"]):
+                          raise ValueError("No playable H.264 video track")
+                      target.write_bytes(encoded.read_bytes())
+                      print(f"Converted {url.rsplit('/', 1)[-1]} ({target.stat().st_size} bytes)", flush=True)
+                  return True
+              except (OSError, subprocess.SubprocessError, ValueError) as error:
+                  print(f"::warning::{url.rsplit('/', 1)[-1]}: {error}", flush=True)
+                  return False
+
+          with ThreadPoolExecutor(max_workers=6) as workers:
+              results = list(workers.map(convert, sources))
+          Path("/tmp/wax-video-failures").write_text(str(results.count(False)))
+          print(f"{sum(results)} of {len(results)} clips ready", flush=True)
+          PY
+      - name: Publish converted assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add assets/products/converted
+          if ! git diff --cached --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m "Publish converted Wax product videos"
+            for attempt in 1 2 3; do
+              git fetch origin main
+              git rebase origin/main
+              if git push origin HEAD:main; then break; fi
+              if [[ $attempt = 3 ]]; then exit 1; fi
+            done
+          fi
+          test "$(cat /tmp/wax-video-failures)" = 0
