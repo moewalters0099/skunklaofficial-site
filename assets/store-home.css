@@ -113,6 +113,7 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;color:#222;background:#fff}
 .store-chip-carousel .store-chips a{flex:0 0 max(112px,15%);justify-content:center}
 .store-slide-controls{align-items:center}
 .store-slide-controls .store-motion{width:auto;height:auto;border-radius:.3rem;padding:.2rem .45rem;background:white;color:#222;font-size:.75rem}
+.store-slide-controls .store-motion:not(:focus-visible){position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .store-product-shell{height:max-content}
 .store-category-item{display:flex;align-items:center;white-space:nowrap}
 .store-categories .store-category-item summary{list-style:none;display:grid;place-items:center;min-width:25px;min-height:28px;padding-inline:4px}
