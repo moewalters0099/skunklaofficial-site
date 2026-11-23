@@ -56,3 +56,27 @@
   .flower-layouts button:nth-child(n+4){display:none}
 }
 .flower-shell-full{grid-template-columns:minmax(0,1fr)}
+[data-toolbar-hint]{position:relative}
+.catalog-toolbar-hint{display:inline-flex;max-width:100%}
+[data-toolbar-hint]::before,[data-toolbar-hint]::after{
+  position:absolute;left:50%;bottom:100%;z-index:9;pointer-events:none;
+  opacity:0;visibility:hidden;transition:opacity .15s,transform .18s,visibility .15s
+}
+[data-toolbar-hint]::after{
+  content:attr(data-toolbar-hint);transform:translate(-50%,-4px);
+  padding:7px 10px;border-radius:3px;background:#000;color:#fff;
+  font:500 14px/14px GeneralSans,Arial,sans-serif;white-space:nowrap
+}
+[data-toolbar-hint]::before{
+  content:"";border:6px solid transparent;border-top-color:#000;
+  transform:translate(-50%,8px)
+}
+[data-toolbar-hint]:is(:hover,:focus-visible,:has(:focus-visible))::after{
+  opacity:1;visibility:visible;transform:translate(-50%,-8px)
+}
+[data-toolbar-hint]:is(:hover,:focus-visible,:has(:focus-visible))::before{
+  opacity:1;visibility:visible;transform:translate(-50%,4px)
+}
+@media(prefers-reduced-motion:reduce){
+  [data-toolbar-hint]::before,[data-toolbar-hint]::after{transition:none}
+}
