@@ -1,5 +1,11 @@
 User-agent: *
 Disallow: /
+Allow: /assets/
+Allow: /styles.css$
+Allow: /styles.css?
+Allow: /educational-directory.css
+Allow: /api/catalog-products
+Allow: /api/blog-posts
 Allow: /about.html$
 Allow: /sitemap-info.xml$
 Allow: /sitemap.xml$

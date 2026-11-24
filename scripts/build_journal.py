@@ -11,7 +11,7 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 CONTENT = ROOT / "content" / "journal"
 OUTPUT = ROOT / "blog"
-START = "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"robots\" content=\"noindex,nofollow\"><link rel=\"stylesheet\" href=\"../styles.css?v=20261110-brand5\">"
+START = "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"robots\" content=\"index,follow\"><link rel=\"stylesheet\" href=\"../styles.css?v=20261110-brand5\">"
 HEADER = '<div class="announcement">WELCOME TO THE OFFICIAL SKUNKLA WEBSITE</div><header class="site-header"><a class="brand" href="../index.html"><img class="brand-image" src="../assets/skunk-logo-black.svg" alt="SKUNKLA"></a><nav aria-label="Main navigation"><a href="../index.html">Home</a><a href="../about.html">About</a><a href="./index.html">Journal</a><a href="../contact.html">Contact</a></nav></header>'
 FOOTER = '<footer><div class="footer-bottom"><small>© 2026 SKUNKLA. All rights reserved.</small><small>Informational website · No online purchases or payments</small></div></footer>'
 
