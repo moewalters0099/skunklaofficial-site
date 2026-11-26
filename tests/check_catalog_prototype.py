@@ -65,9 +65,9 @@ assert audit.search_inputs[0].get("id") == "concept-search"
 assert any(x.get("for") == "concept-search" for x in audit.labels)
 assert all((PAGE.parent / link.split("?", 1)[0]).resolve().is_file() for link in audit.local_links), f"Broken local asset or navigation link: {audit.local_links}"
 assert 'data-filter="all" aria-pressed="true"' in html
-assert "updateGallery()" in html and 'search.addEventListener("input",updateGallery)' in html
+assert "updateGallery()" in html and "search.addEventListener('input', updateGallery)" in html
 assert 'name="viewport"' in html
 assert 'name="robots" content="noindex,nofollow"' in html
-assert "@media(max-width:650px)" in html and "@media(max-width:560px)" in html
+assert "@media (max-width: 650px)" in html and "@media (max-width: 900px)" in html
 assert "No real products, prices, carts, payment collection, ordering, or checkout." in html
 print("PASS: 12 cards, categories, filters, search, labeled input, local links, accessibility basics, mobile breakpoints, unpublished disclaimer")
